@@ -271,7 +271,7 @@ class GradingPipeline:
                     if is_cacheable:
                         result = checker.check_cache(rxn_smiles)  # noqa
                     if result is None:
-                        result = checker.run(rxn_smiles, all_tool_results)
+                        result = await checker.arun(rxn_smiles, all_tool_results)
                 except Exception as exc:
                     result = checker.errored(
                         f"{checker.name} raised an unexpected error: {exc}",

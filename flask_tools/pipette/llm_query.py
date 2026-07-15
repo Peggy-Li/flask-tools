@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import os
 import threading
-from typing import TYPE_CHECKING, Awaitable, Literal
+from typing import TYPE_CHECKING, Awaitable, Literal, Any
 from urllib.parse import urlsplit, urlunsplit
 
 from charge.clients.agentframework import AgentFrameworkBackend
@@ -152,7 +152,7 @@ async def query_task_async(
     return str(result)
 
 
-def _run_coroutine_sync(coro: Awaitable[str]) -> str:
+def _run_coroutine_sync(coro: Awaitable) -> Any:
     try:
         asyncio.get_running_loop()
     except RuntimeError:

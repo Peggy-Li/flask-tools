@@ -15,8 +15,8 @@ from flask_tools.pipette.reaction_fixer import (
     AsyncLLMReactionFixer,
     BaseLLMReactionFixer,
 )
-from .foo import llm_benchmark_reactions
-from .foo.llm_benchmark_reactions import mapped_reaction_from_pairs
+from . import llm_benchmark_reactions
+from .llm_benchmark_reactions import mapped_reaction_from_pairs
 from .subtractive_reaction_mapper_v3 import (
     subtractive_map_reaction,
     SubtractiveMappingResult,
@@ -67,6 +67,11 @@ class GraphBasedBalancer(ReactionChecker):
     def run(
         self, rxn_smiles: str, context: ToolResultsDict | None = None
     ) -> ToolResult:
+        return _run_coroutine_sync(self.arun(rxn_smiles, context))
+
+    async def arun(
+        self, rxn_smiles: str, context: ToolResultsDict | None = None
+    ) -> ToolResult:
         """
         The subtractive_mapping is used for balancing dimerization.
         then LLM atom mapping
@@ -98,12 +103,11 @@ class GraphBasedBalancer(ReactionChecker):
 
         # Call the llm balancing (llm fixing) already in pipette
         reaction_fixer = AsyncLLMReactionFixer.from_config(self.config)
-        llm_balanced_tool_res = None
         llm_balanced_smi = None
         if reaction_fixer is not None:
             llm_balanced_smi: str | None
             llm_balanced_tool_res, llm_balanced_smi = (
-                GradingPipeline.attempt_llm_fix_async(
+                await GradingPipeline.attempt_llm_fix_async(
                     reaction_fixer, initial_balanced_smi, context
                 )
             )
@@ -259,7 +263,7 @@ class LLMAtomMapper(ReactionChecker):
                 raise ValueError(
                     f"How did these diverge?"
                 )  # Just in case. Nothing in current code would do this
-            agents = rxn_smiles.reagents_smi
+            agents = rxn_smiles.reagents_smi or ""
             rxn_smiles = f"{reactants}>{agents}>{products}"
 
         # Call LLM atom mapper
