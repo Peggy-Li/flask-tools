@@ -163,12 +163,12 @@ class GradingPipeline:
         )
 
     @staticmethod
-    async def _attempt_llm_fix_async(
+    async def attempt_llm_fix_async(
         reaction_fixer: BaseLLMReactionFixer,
         rxn_smiles: str,
         tool_results: ToolResultsDict,
     ) -> tuple[ToolResult, str | None] | None:
-        if self.reaction_fixer is None:
+        if reaction_fixer is None:
             return None
 
         try:
@@ -201,7 +201,7 @@ class GradingPipeline:
                 None,
             )
 
-        return self._build_fix_result(fix), fix.fixed_reaction_smiles
+        return GradingPipeline._build_fix_result(fix), fix.fixed_reaction_smiles
 
     async def _finalize_grade_async(
         self,
@@ -238,7 +238,7 @@ class GradingPipeline:
 
             if (rxn_smiles, "llm_reaction_fix") in previous_tool_results:
                 raise RuntimeError("llm_reaction_fix already ran")
-            fix_attempt = await self._attempt_llm_fix_async(
+            fix_attempt = await self.attempt_llm_fix_async(
                 self.reaction_fixer,
                 rxn_smiles,
                 all_tool_results,
@@ -337,12 +337,17 @@ def build_default_pipeline(
     attribute of `ReactionChecker`).
     """
     # Edit this function when adding new `ReactionChecker`s
+    from .graph_rxn_mapper.subtractive_reaction_mapper_new import (
+        GraphBasedBalancer,
+        LLMAtomMapper,
+    )
+
     config = config or PipetteConfig()
     possible_checker_factories = checker_factories or {
         "basic_smiles_validation": lambda _: BasicSmilesValidationChecker(),
         "exact_match": lambda _: ExactMatchChecker(),
-        "graph_based_balancing": lambda _: todo,
-        "atom_mapping": lambda _: todo,
+        "graph_based_balancing": lambda config: GraphBasedBalancer(config),
+        "llm_atom_mapping": lambda config: LLMAtomMapper.from_config(config),
         "charge_conservation": lambda _: ChargeConservationChecker(),
         "mass_conservation": lambda config: MassConservationChecker(config),
         "reaction_energy": lambda config: ReactionEnergyChecker(

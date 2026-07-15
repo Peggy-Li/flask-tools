@@ -28,6 +28,11 @@ def package_config_path(filename: str) -> Path:
     return Path(__file__).with_name("assets") / filename
 
 
+def graph_rxn_mapper_prompt_path(filename: str) -> Path:
+    # Relative to top level of pipette module / graph_rxn_mapper / prmopts
+    return Path(__file__).with_name("graph_rxn_mapper") / "prompts" / filename
+
+
 def _validate_mapping_format(data: object, *, name: str) -> dict[str, Any]:
     if data is None:
         return {}
@@ -45,6 +50,23 @@ def _resolve_optional_path(path_value: object, *, base_dir: Path) -> Path | None
     candidate = Path(path_value).expanduser()
     if not candidate.is_absolute():
         candidate = (base_dir / candidate).resolve()
+    return candidate
+
+
+def _resolve_defaultable_cwd_path(
+    path_value: object,
+    *,
+    default_path: Path,
+    name: str,
+) -> Path:
+    if path_value is None or path_value == "default":
+        return default_path
+    if not isinstance(path_value, str):
+        raise ValueError(f"{name} must be a string, 'default', or null.")
+
+    candidate = Path(path_value).expanduser()
+    if not candidate.is_absolute():
+        candidate = (Path.cwd() / candidate).resolve()
     return candidate
 
 
@@ -216,11 +238,83 @@ class ReactionEnergyConfig:
 
 
 @dataclass
+class LLMAtomMappingConfig:
+    url: str = DEFAULT_LLM_BASE_URL
+    model: str = "gpt-5.4"
+    reasoning_effort: ReasoningEffort = "medium"
+    api_key: str | None = None
+    system_prompt_path: Path = field(
+        default_factory=lambda: graph_rxn_mapper_prompt_path("atom_mapping_system.md")
+    )
+    user_prompt_path: Path = field(
+        default_factory=lambda: graph_rxn_mapper_prompt_path("atom_mapping_user.md")
+    )
+    skill_prompt_path: Path = field(
+        default_factory=lambda: graph_rxn_mapper_prompt_path("atom_mapping_skill.md")
+    )
+
+    @classmethod
+    def from_mapping(
+        cls,
+        data: object,
+        *,
+        base_dir: Path,
+    ) -> LLMAtomMappingConfig:
+        mapping = _validate_mapping_format(data, name="tools_settings.llm_atom_mapping")
+        del base_dir
+
+        url = mapping.get("url")
+        if url is not None and not isinstance(url, str):
+            raise ValueError(
+                "tools_settings.llm_atom_mapping.url must be a string when provided."
+            )
+
+        model = mapping.get("model", cls.model)
+        if not isinstance(model, str):
+            raise ValueError("tools_settings.llm_atom_mapping.model must be a string.")
+
+        reasoning_effort = mapping.get("reasoning_effort", cls.reasoning_effort)
+        if reasoning_effort not in {"low", "medium", "high"}:
+            raise ValueError(
+                "tools_settings.llm_atom_mapping.reasoning_effort must be 'low', 'medium', or 'high'."
+            )
+
+        api_key = mapping.get("api_key")
+        if api_key is not None and not isinstance(api_key, str):
+            raise ValueError(
+                "tools_settings.llm_atom_mapping.api_key must be a string when provided."
+            )
+
+        return cls(
+            url=resolve_llm_base_url(url),
+            model=model,
+            reasoning_effort=reasoning_effort,
+            api_key=api_key,
+            system_prompt_path=_resolve_defaultable_cwd_path(
+                mapping.get("system_prompt_path"),
+                default_path=graph_rxn_mapper_prompt_path("atom_mapping_system.md"),
+                name="tools_settings.llm_atom_mapping.system_prompt_path",
+            ),
+            user_prompt_path=_resolve_defaultable_cwd_path(
+                mapping.get("user_prompt_path"),
+                default_path=graph_rxn_mapper_prompt_path("atom_mapping_user.md"),
+                name="tools_settings.llm_atom_mapping.user_prompt_path",
+            ),
+            skill_prompt_path=_resolve_defaultable_cwd_path(
+                mapping.get("skill_prompt_path"),
+                default_path=graph_rxn_mapper_prompt_path("atom_mapping_skill.md"),
+                name="tools_settings.llm_atom_mapping.skill_prompt_path",
+            ),
+        )
+
+
+@dataclass
 class ToolsConfig:
     reaction_energy: ReactionEnergyConfig = field(default_factory=ReactionEnergyConfig)
     reaction_mapper: ReactionAtomMapperConfig = field(
         default_factory=ReactionAtomMapperConfig
     )
+    llm_atom_mapping: LLMAtomMappingConfig = field(default_factory=LLMAtomMappingConfig)
 
     @classmethod
     def from_mapping(
@@ -234,7 +328,11 @@ class ToolsConfig:
             reaction_energy=ReactionEnergyConfig.from_mapping(
                 mapping.get("reaction_energy"),
                 base_dir=base_dir,
-            )
+            ),
+            llm_atom_mapping=LLMAtomMappingConfig.from_mapping(
+                mapping.get("llm_atom_mapping"),
+                base_dir=base_dir,
+            ),
         )
 
 
