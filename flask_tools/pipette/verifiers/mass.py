@@ -198,7 +198,7 @@ class MassConservationChecker(ReactionChecker):
         self.missing_product_rules = load_solvent_rules(config.solvent_catalog_path)
 
     def run(
-        self, rxn_smiles: str, context: dict[str, ToolResult] | None = None
+        self, rxn_smiles: str, context: ToolResultsDict | None = None
     ) -> ToolResult:
         try:
             delta = element_delta(rxn_smiles, explicit_hydrogens=True)

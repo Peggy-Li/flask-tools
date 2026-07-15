@@ -98,3 +98,53 @@ def smiles_to_inchi(smiles: str) -> str:
             f"Could not generate an InChIKey for SMILES component: {smiles!r}"
         )
     return inchi
+
+
+def remove_atom_mapping_from_smiles(smi: str) -> str | None:
+    """Returns None if smi is invalid"""
+    mol = Chem.MolFromSmiles(smi)
+    if not mol:
+        return None
+    for atom in mol.GetAtoms():
+        atom.SetAtomMapNum(0)
+    return Chem.MolToSmiles(mol)
+
+
+def mol_from_side(side: str) -> Chem.Mol:
+    if not side:
+        return Chem.Mol()
+    mol = Chem.MolFromSmiles(side, sanitize=True)
+    if mol is None:
+        raise ValueError(f"Could not parse reaction side: {side!r}")
+    return mol
+
+
+def clear_atom_maps_from_side(side: str) -> str:
+    mol = mol_from_side(side)
+    for atom in mol.GetAtoms():
+        atom.SetAtomMapNum(0)
+    return canonical_side_smiles(mol)
+
+
+def clear_atom_maps_from_reaction(
+    reaction_smiles: str, keep_agents: bool = False
+) -> str:
+    reactants, agents, products = split_reaction_smiles(reaction_smiles)
+    cleared_reactants = clear_atom_maps_from_side(reactants)
+    cleared_products = clear_atom_maps_from_side(products)
+    if keep_agents:
+        cleared_agents = clear_atom_maps_from_side(agents)
+        return f"{cleared_reactants}>{cleared_agents}>{cleared_products}"
+    return f"{cleared_reactants}>>{cleared_products}"
+
+
+def canonical_side_smiles(mol: Chem.Mol) -> str:
+    """Canonicalize a reaction side as a sorted multiset of mapped fragments."""
+    if mol.GetNumAtoms() == 0:
+        return ""
+    fragments = Chem.GetMolFrags(mol, asMols=True, sanitizeFrags=True)
+    smiles = [
+        Chem.MolToSmiles(fragment, canonical=True, isomericSmiles=True)
+        for fragment in fragments
+    ]
+    return ".".join(sorted(smiles))

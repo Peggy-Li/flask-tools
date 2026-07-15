@@ -47,6 +47,8 @@ _FixerT = TypeVar("_FixerT", bound="BaseLLMReactionFixer")
 
 
 class BaseLLMReactionFixer:
+    name = "llm_reaction_fix"
+
     def __init__(
         self,
         *,

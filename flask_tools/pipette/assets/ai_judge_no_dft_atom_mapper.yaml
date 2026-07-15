@@ -1,17 +1,14 @@
+llm_judge:
+  allow_fail:
+    - exact_match
 tool_list:
   - "basic_smiles_validation"
   - "exact_match"
   - "charge_conservation"
   - "mass_conservation"
   - "reaction_energy"
-tools_settings:
-  reaction_energy:
-    database: null
-llm_judge:
-  allow_fail:
-    - exact_match
 settings:
   stop_on_hard_fail: true
   mass_tolerance_atoms: 0
   reaction_energy_max_ev_mol: 0.2
-  use_dft: true
+  use_dft: false

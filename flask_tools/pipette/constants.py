@@ -52,6 +52,22 @@ def resolve_llm_base_url(explicit_base_url: str | None = None) -> str:
 DEFAULT_LLM_BASE_URL = resolve_llm_base_url()
 
 
+class SmilesContainer(str):
+    """A class so most tools can assume rxn_smiles passed to tool.run() is a plain string, but some can play around
+    with the presence of the reagents
+    """
+
+    def __new__(cls, value, original_smiles=None):
+        instance = super().__new__(cls, value)
+        return instance
+
+    def __init__(self, value, reagents_smi: str | None = None):
+        self.reagents_smi = reagents_smi
+
+    def __repr__(self):
+        return f"SmilesContainer({str.__repr__(self)}, reagents_smiles={self.reagents_smi!r})"
+
+
 class ToolStatus(str, Enum):
     PASS = "pass"  # Reaction passed this tool
     FAIL = "fail"  # Reaction failed to pass this tool

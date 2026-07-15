@@ -162,8 +162,9 @@ class GradingPipeline:
             comment="LLM proposed a corrected reaction",
         )
 
+    @staticmethod
     async def _attempt_llm_fix_async(
-        self,
+        reaction_fixer: BaseLLMReactionFixer,
         rxn_smiles: str,
         tool_results: ToolResultsDict,
     ) -> tuple[ToolResult, str | None] | None:
@@ -171,7 +172,7 @@ class GradingPipeline:
             return None
 
         try:
-            fix_result = self.reaction_fixer.fix(
+            fix_result = reaction_fixer.fix(
                 rxn_smiles,
                 list(tool_results.values()),
             )
@@ -238,6 +239,7 @@ class GradingPipeline:
             if (rxn_smiles, "llm_reaction_fix") in previous_tool_results:
                 raise RuntimeError("llm_reaction_fix already ran")
             fix_attempt = await self._attempt_llm_fix_async(
+                self.reaction_fixer,
                 rxn_smiles,
                 all_tool_results,
             )
@@ -339,6 +341,8 @@ def build_default_pipeline(
     possible_checker_factories = checker_factories or {
         "basic_smiles_validation": lambda _: BasicSmilesValidationChecker(),
         "exact_match": lambda _: ExactMatchChecker(),
+        "graph_based_balancing": lambda _: todo,
+        "atom_mapping": lambda _: todo,
         "charge_conservation": lambda _: ChargeConservationChecker(),
         "mass_conservation": lambda config: MassConservationChecker(config),
         "reaction_energy": lambda config: ReactionEnergyChecker(
