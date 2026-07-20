@@ -1,0 +1,1444 @@
+{
+  "atom_mapped_reaction_smiles": "[O-][n+]1[c:9]2[c:7]([n:6][cH:5][c:4]([N+:2](=[O:1])[O-:3])[cH:11]2)[n:8][o:10]1>>C1=CC2CCC1O[N:8]2[c:7]1[n:6][cH:5][c:4]([N+:2](=[O:1])[O-:3])[cH:11][c:9]1N1C2C=CC(CC2)[O:10]1",
+  "config": {
+    "active_copy_penalty": 1.0,
+    "allow_extra_product_edges_in_candidate": true,
+    "atom_map_anchor_bonus": 25.0,
+    "atom_reward": 10.0,
+    "bond_environment_objective": "off",
+    "bond_environment_rank_tolerance": 1e-06,
+    "broken_bond_environment_penalty": 1.0,
+    "candidate_piece_penalty": 2.0,
+    "compare_aromaticity": false,
+    "compare_bond_order": true,
+    "compare_formal_charge": true,
+    "compare_isotope": false,
+    "extra_product_edge_penalty": 2.0,
+    "fallback_to_greedy": true,
+    "include_rdkit_mcs_candidates": true,
+    "mapped_reactants_single_copy": true,
+    "max_base_candidates_per_reactant": 6000,
+    "max_broken_bond_pair_penalty_terms": 25000,
+    "max_copies": 3,
+    "max_fragment_atoms": 8,
+    "max_fragments_per_reactant": 2500,
+    "max_matches_per_fragment": 128,
+    "max_mcs_matches": 256,
+    "max_segment_distance": 8,
+    "min_fragment_atoms": 1,
+    "preserved_bond_reward": 5.0,
+    "require_atom_map_match_when_present": true,
+    "respect_atom_maps": null,
+    "ring_bond_break_penalty": 2.0,
+    "selector": "ilp",
+    "single_atom_piece_penalty": 4.0,
+    "stable_single_bond_break_penalty": 1.0,
+    "unsaturated_endpoint_break_credit": 0.75,
+    "unused_reactant_atom_penalty_active_copy": 6.0
+  },
+  "diagnostics": {
+    "active_copies_by_reactant": {
+      "0": 1
+    },
+    "candidate_generation": {
+      "base_candidate_count": 287,
+      "expanded_candidate_count": 861,
+      "respect_atom_maps": false
+    },
+    "lineage_split_events": [
+      {
+        "blocks": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            15,
+            24
+          ],
+          [
+            17
+          ]
+        ],
+        "extra_blocks": 1,
+        "lineage": "R0/copy0",
+        "num_product_blocks": 2,
+        "piece_count_for_lineage": 4
+      }
+    ],
+    "product_bond_events": [
+      {
+        "event": "product_bond_explained_by_reactant_bond",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          0,
+          1
+        ],
+        "reactant_bond": [
+          0,
+          1
+        ]
+      },
+      {
+        "event": "product_bond_explained_by_reactant_bond",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          1,
+          2
+        ],
+        "reactant_bond": [
+          1,
+          2
+        ]
+      },
+      {
+        "event": "product_bond_explained_by_reactant_bond",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          1,
+          3
+        ],
+        "reactant_bond": [
+          1,
+          3
+        ]
+      },
+      {
+        "event": "product_bond_explained_by_reactant_bond",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          3,
+          4
+        ],
+        "reactant_bond": [
+          3,
+          4
+        ]
+      },
+      {
+        "event": "product_bond_explained_by_reactant_bond",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          3,
+          24
+        ],
+        "reactant_bond": [
+          3,
+          12
+        ]
+      },
+      {
+        "event": "product_bond_explained_by_reactant_bond",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          4,
+          5
+        ],
+        "reactant_bond": [
+          4,
+          5
+        ]
+      },
+      {
+        "event": "product_bond_explained_by_reactant_bond",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          5,
+          6
+        ],
+        "reactant_bond": [
+          5,
+          6
+        ]
+      },
+      {
+        "event": "product_bond_order_changed_from_reactant",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          6,
+          7
+        ],
+        "reactant_bond": [
+          6,
+          7
+        ]
+      },
+      {
+        "event": "product_bond_explained_by_reactant_bond",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          6,
+          15
+        ],
+        "reactant_bond": [
+          6,
+          11
+        ]
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          7,
+          8
+        ],
+        "source_1": "R0/copy0",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          7,
+          12
+        ],
+        "source_1": "R0/copy0",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          8,
+          9
+        ],
+        "source_1": "uncovered",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          9,
+          10
+        ],
+        "source_1": "uncovered",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          9,
+          14
+        ],
+        "source_1": "uncovered",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          10,
+          11
+        ],
+        "source_1": "uncovered",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          11,
+          12
+        ],
+        "source_1": "uncovered",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          12,
+          13
+        ],
+        "source_1": "uncovered",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          13,
+          14
+        ],
+        "source_1": "uncovered",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          15,
+          16
+        ],
+        "source_1": "R0/copy0",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_explained_by_reactant_bond",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          15,
+          24
+        ],
+        "reactant_bond": [
+          11,
+          12
+        ]
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          16,
+          17
+        ],
+        "source_1": "uncovered",
+        "source_2": "R0/copy0"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          16,
+          21
+        ],
+        "source_1": "uncovered",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          17,
+          18
+        ],
+        "source_1": "R0/copy0",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          18,
+          19
+        ],
+        "source_1": "uncovered",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          18,
+          23
+        ],
+        "source_1": "uncovered",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          19,
+          20
+        ],
+        "source_1": "uncovered",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          20,
+          21
+        ],
+        "source_1": "uncovered",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          21,
+          22
+        ],
+        "source_1": "uncovered",
+        "source_2": "uncovered"
+      },
+      {
+        "event": "product_bond_touches_uncovered_atom",
+        "product_bond": [
+          22,
+          23
+        ],
+        "source_1": "uncovered",
+        "source_2": "uncovered"
+      }
+    ],
+    "product_lineage_quotient": {
+      "blocks": [
+        {
+          "atoms": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            15,
+            24
+          ],
+          "block_id": 0,
+          "size": 10,
+          "source": "R0/copy0"
+        },
+        {
+          "atoms": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "block_id": 1,
+          "size": 7,
+          "source": "uncovered"
+        },
+        {
+          "atoms": [
+            16,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ],
+          "block_id": 2,
+          "size": 7,
+          "source": "uncovered"
+        },
+        {
+          "atoms": [
+            17
+          ],
+          "block_id": 3,
+          "size": 1,
+          "source": "R0/copy0"
+        }
+      ],
+      "edges": [
+        {
+          "block_1": 0,
+          "block_2": 1
+        },
+        {
+          "block_1": 0,
+          "block_2": 2
+        },
+        {
+          "block_1": 2,
+          "block_2": 3
+        }
+      ]
+    },
+    "reactant_bond_events": [
+      {
+        "event": "reactant_bond_preserved",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          0,
+          1
+        ],
+        "reactant_bond": [
+          0,
+          1
+        ]
+      },
+      {
+        "event": "reactant_bond_preserved",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          1,
+          2
+        ],
+        "reactant_bond": [
+          1,
+          2
+        ]
+      },
+      {
+        "event": "reactant_bond_preserved",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          1,
+          3
+        ],
+        "reactant_bond": [
+          1,
+          3
+        ]
+      },
+      {
+        "event": "reactant_bond_preserved",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          3,
+          4
+        ],
+        "reactant_bond": [
+          3,
+          4
+        ]
+      },
+      {
+        "event": "reactant_bond_preserved",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          3,
+          24
+        ],
+        "reactant_bond": [
+          3,
+          12
+        ]
+      },
+      {
+        "event": "reactant_bond_preserved",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          4,
+          5
+        ],
+        "reactant_bond": [
+          4,
+          5
+        ]
+      },
+      {
+        "event": "reactant_bond_preserved",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          5,
+          6
+        ],
+        "reactant_bond": [
+          5,
+          6
+        ]
+      },
+      {
+        "event": "reactant_bond_order_changed",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          6,
+          7
+        ],
+        "reactant_bond": [
+          6,
+          7
+        ]
+      },
+      {
+        "event": "reactant_bond_preserved",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          6,
+          15
+        ],
+        "reactant_bond": [
+          6,
+          11
+        ]
+      },
+      {
+        "event": "reactant_bond_broken",
+        "lineage": "R0/copy0",
+        "mapped_product_atoms": [
+          7,
+          17
+        ],
+        "reactant_bond": [
+          7,
+          8
+        ]
+      },
+      {
+        "event": "reactant_bond_deleted_or_unmapped",
+        "lineage": "R0/copy0",
+        "mapped_product_atoms": [
+          17,
+          null
+        ],
+        "reactant_bond": [
+          8,
+          9
+        ]
+      },
+      {
+        "event": "reactant_bond_deleted_or_unmapped",
+        "lineage": "R0/copy0",
+        "mapped_product_atoms": [
+          null,
+          null
+        ],
+        "reactant_bond": [
+          9,
+          10
+        ]
+      },
+      {
+        "event": "reactant_bond_deleted_or_unmapped",
+        "lineage": "R0/copy0",
+        "mapped_product_atoms": [
+          null,
+          15
+        ],
+        "reactant_bond": [
+          9,
+          11
+        ]
+      },
+      {
+        "event": "reactant_bond_preserved",
+        "lineage": "R0/copy0",
+        "product_bond": [
+          15,
+          24
+        ],
+        "reactant_bond": [
+          11,
+          12
+        ]
+      }
+    ],
+    "residuals": {
+      "counts": {
+        "active_reactant_residual_fragment_count": 1,
+        "product_byproduct_candidate_count": 0,
+        "product_partial_unmapped_fragment_count": 2,
+        "product_residual_atom_count": 14,
+        "product_residual_fragment_count": 2,
+        "reactant_residual_atom_count": 2,
+        "reactant_residual_fragment_count": 1,
+        "unused_reactant_component_count": 0
+      },
+      "product_byproduct_candidate_smiles": "",
+      "product_byproduct_candidates": [],
+      "product_partial_unmapped_fragments": [
+        {
+          "adjacent_selected_lineages": [
+            "R0/copy0"
+          ],
+          "atoms": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "bond_count": 7,
+          "boundary_bonds_to_nonresidual_atoms": [
+            [
+              7,
+              8
+            ],
+            [
+              7,
+              12
+            ]
+          ],
+          "classification": "partial_uncovered_product_fragment",
+          "is_whole_product_component": false,
+          "parent_product_components": [
+            0
+          ],
+          "residual_id": 0,
+          "size": 7,
+          "smiles": "OC1C=CCCC1",
+          "touches_selected_mapping": true,
+          "unmapped_smiles": "OC1C=CCCC1"
+        },
+        {
+          "adjacent_selected_lineages": [
+            "R0/copy0"
+          ],
+          "atoms": [
+            16,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ],
+          "bond_count": 7,
+          "boundary_bonds_to_nonresidual_atoms": [
+            [
+              15,
+              16
+            ],
+            [
+              16,
+              17
+            ],
+            [
+              17,
+              18
+            ]
+          ],
+          "classification": "partial_uncovered_product_fragment",
+          "is_whole_product_component": false,
+          "parent_product_components": [
+            0
+          ],
+          "residual_id": 1,
+          "size": 7,
+          "smiles": "NC1C=CCCC1",
+          "touches_selected_mapping": true,
+          "unmapped_smiles": "NC1C=CCCC1"
+        }
+      ],
+      "product_residual_fragments": [
+        {
+          "adjacent_selected_lineages": [
+            "R0/copy0"
+          ],
+          "atoms": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "bond_count": 7,
+          "boundary_bonds_to_nonresidual_atoms": [
+            [
+              7,
+              8
+            ],
+            [
+              7,
+              12
+            ]
+          ],
+          "classification": "partial_uncovered_product_fragment",
+          "is_whole_product_component": false,
+          "parent_product_components": [
+            0
+          ],
+          "residual_id": 0,
+          "size": 7,
+          "smiles": "OC1C=CCCC1",
+          "touches_selected_mapping": true,
+          "unmapped_smiles": "OC1C=CCCC1"
+        },
+        {
+          "adjacent_selected_lineages": [
+            "R0/copy0"
+          ],
+          "atoms": [
+            16,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ],
+          "bond_count": 7,
+          "boundary_bonds_to_nonresidual_atoms": [
+            [
+              15,
+              16
+            ],
+            [
+              16,
+              17
+            ],
+            [
+              17,
+              18
+            ]
+          ],
+          "classification": "partial_uncovered_product_fragment",
+          "is_whole_product_component": false,
+          "parent_product_components": [
+            0
+          ],
+          "residual_id": 1,
+          "size": 7,
+          "smiles": "NC1C=CCCC1",
+          "touches_selected_mapping": true,
+          "unmapped_smiles": "NC1C=CCCC1"
+        }
+      ],
+      "product_residual_smiles": "OC1C=CCCC1.NC1C=CCCC1",
+      "reactant_residual_fragments": [
+        {
+          "atoms": [
+            9,
+            10
+          ],
+          "bond_count": 1,
+          "boundary_bonds_to_selected_reactant_atoms": [
+            [
+              8,
+              9
+            ],
+            [
+              9,
+              11
+            ]
+          ],
+          "classification": "unused_fragment_in_active_reactant_copy",
+          "copy_id": 0,
+          "lineage": "R0/copy0",
+          "reactant_id": 0,
+          "residual_id": 0,
+          "size": 2,
+          "smiles": "[n+][O-]",
+          "unmapped_smiles": "[n+][O-]"
+        }
+      ],
+      "reactant_residual_smiles": "[n+][O-]"
+    },
+    "segment_events": {
+      "contractions": [],
+      "foreign_or_unknown_bridged_breaks": [
+        {
+          "bridge_sources": [
+            "uncovered"
+          ],
+          "collapsed_source_sequence": [
+            "R0/copy0",
+            "uncovered",
+            "R0/copy0"
+          ],
+          "foreign_or_unknown_bridge_atom_count": 1,
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            7,
+            17
+          ],
+          "product_distance_full": 4,
+          "product_distance_same_lineage": null,
+          "product_path_full": [
+            7,
+            6,
+            15,
+            16,
+            17
+          ],
+          "product_path_same_lineage": [],
+          "reactant_atoms": [
+            7,
+            8
+          ],
+          "reactant_distance": 1,
+          "reactant_path": [
+            7,
+            8
+          ],
+          "source_sequence": [
+            "R0/copy0",
+            "R0/copy0",
+            "R0/copy0",
+            "uncovered",
+            "R0/copy0"
+          ]
+        },
+        {
+          "bridge_sources": [
+            "uncovered"
+          ],
+          "collapsed_source_sequence": [
+            "R0/copy0",
+            "uncovered",
+            "R0/copy0"
+          ],
+          "foreign_or_unknown_bridge_atom_count": 1,
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            17,
+            15
+          ],
+          "product_distance_full": 2,
+          "product_distance_same_lineage": null,
+          "product_path_full": [
+            17,
+            16,
+            15
+          ],
+          "product_path_same_lineage": [],
+          "reactant_atoms": [
+            8,
+            11
+          ],
+          "reactant_distance": 2,
+          "reactant_path": [
+            8,
+            9,
+            11
+          ],
+          "source_sequence": [
+            "R0/copy0",
+            "uncovered",
+            "R0/copy0"
+          ]
+        }
+      ],
+      "lineage_restricted_breaks": [
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            7,
+            17
+          ],
+          "product_distance_full": 4,
+          "product_distance_same_lineage": null,
+          "product_path_full": [
+            7,
+            6,
+            15,
+            16,
+            17
+          ],
+          "product_path_same_lineage": [],
+          "reactant_atoms": [
+            7,
+            8
+          ],
+          "reactant_distance": 1,
+          "reactant_path": [
+            7,
+            8
+          ]
+        },
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            17,
+            15
+          ],
+          "product_distance_full": 2,
+          "product_distance_same_lineage": null,
+          "product_path_full": [
+            17,
+            16,
+            15
+          ],
+          "product_path_same_lineage": [],
+          "reactant_atoms": [
+            8,
+            11
+          ],
+          "reactant_distance": 2,
+          "reactant_path": [
+            8,
+            9,
+            11
+          ]
+        }
+      ],
+      "segments": [
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            0,
+            1
+          ],
+          "product_distance_full": 1,
+          "product_distance_same_lineage": 1,
+          "product_path_full": [
+            0,
+            1
+          ],
+          "product_path_same_lineage": [
+            0,
+            1
+          ],
+          "reactant_atoms": [
+            0,
+            1
+          ],
+          "reactant_distance": 1,
+          "reactant_path": [
+            0,
+            1
+          ]
+        },
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            1,
+            2
+          ],
+          "product_distance_full": 1,
+          "product_distance_same_lineage": 1,
+          "product_path_full": [
+            1,
+            2
+          ],
+          "product_path_same_lineage": [
+            1,
+            2
+          ],
+          "reactant_atoms": [
+            1,
+            2
+          ],
+          "reactant_distance": 1,
+          "reactant_path": [
+            1,
+            2
+          ]
+        },
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            1,
+            3
+          ],
+          "product_distance_full": 1,
+          "product_distance_same_lineage": 1,
+          "product_path_full": [
+            1,
+            3
+          ],
+          "product_path_same_lineage": [
+            1,
+            3
+          ],
+          "reactant_atoms": [
+            1,
+            3
+          ],
+          "reactant_distance": 1,
+          "reactant_path": [
+            1,
+            3
+          ]
+        },
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            3,
+            4
+          ],
+          "product_distance_full": 1,
+          "product_distance_same_lineage": 1,
+          "product_path_full": [
+            3,
+            4
+          ],
+          "product_path_same_lineage": [
+            3,
+            4
+          ],
+          "reactant_atoms": [
+            3,
+            4
+          ],
+          "reactant_distance": 1,
+          "reactant_path": [
+            3,
+            4
+          ]
+        },
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            3,
+            24
+          ],
+          "product_distance_full": 1,
+          "product_distance_same_lineage": 1,
+          "product_path_full": [
+            3,
+            24
+          ],
+          "product_path_same_lineage": [
+            3,
+            24
+          ],
+          "reactant_atoms": [
+            3,
+            12
+          ],
+          "reactant_distance": 1,
+          "reactant_path": [
+            3,
+            12
+          ]
+        },
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            4,
+            5
+          ],
+          "product_distance_full": 1,
+          "product_distance_same_lineage": 1,
+          "product_path_full": [
+            4,
+            5
+          ],
+          "product_path_same_lineage": [
+            4,
+            5
+          ],
+          "reactant_atoms": [
+            4,
+            5
+          ],
+          "reactant_distance": 1,
+          "reactant_path": [
+            4,
+            5
+          ]
+        },
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            5,
+            6
+          ],
+          "product_distance_full": 1,
+          "product_distance_same_lineage": 1,
+          "product_path_full": [
+            5,
+            6
+          ],
+          "product_path_same_lineage": [
+            5,
+            6
+          ],
+          "reactant_atoms": [
+            5,
+            6
+          ],
+          "reactant_distance": 1,
+          "reactant_path": [
+            5,
+            6
+          ]
+        },
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            6,
+            7
+          ],
+          "product_distance_full": 1,
+          "product_distance_same_lineage": 1,
+          "product_path_full": [
+            6,
+            7
+          ],
+          "product_path_same_lineage": [
+            6,
+            7
+          ],
+          "reactant_atoms": [
+            6,
+            7
+          ],
+          "reactant_distance": 1,
+          "reactant_path": [
+            6,
+            7
+          ]
+        },
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            6,
+            15
+          ],
+          "product_distance_full": 1,
+          "product_distance_same_lineage": 1,
+          "product_path_full": [
+            6,
+            15
+          ],
+          "product_path_same_lineage": [
+            6,
+            15
+          ],
+          "reactant_atoms": [
+            6,
+            11
+          ],
+          "reactant_distance": 1,
+          "reactant_path": [
+            6,
+            11
+          ]
+        },
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            7,
+            17
+          ],
+          "product_distance_full": 4,
+          "product_distance_same_lineage": null,
+          "product_path_full": [
+            7,
+            6,
+            15,
+            16,
+            17
+          ],
+          "product_path_same_lineage": [],
+          "reactant_atoms": [
+            7,
+            8
+          ],
+          "reactant_distance": 1,
+          "reactant_path": [
+            7,
+            8
+          ]
+        },
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            15,
+            24
+          ],
+          "product_distance_full": 1,
+          "product_distance_same_lineage": 1,
+          "product_path_full": [
+            15,
+            24
+          ],
+          "product_path_same_lineage": [
+            15,
+            24
+          ],
+          "reactant_atoms": [
+            11,
+            12
+          ],
+          "reactant_distance": 1,
+          "reactant_path": [
+            11,
+            12
+          ]
+        },
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            17,
+            15
+          ],
+          "product_distance_full": 2,
+          "product_distance_same_lineage": null,
+          "product_path_full": [
+            17,
+            16,
+            15
+          ],
+          "product_path_same_lineage": [],
+          "reactant_atoms": [
+            8,
+            11
+          ],
+          "reactant_distance": 2,
+          "reactant_path": [
+            8,
+            9,
+            11
+          ]
+        }
+      ],
+      "stretches": [
+        {
+          "lineage": "R0/copy0",
+          "product_atoms": [
+            7,
+            17
+          ],
+          "product_distance_full": 4,
+          "product_distance_same_lineage": null,
+          "product_path_full": [
+            7,
+            6,
+            15,
+            16,
+            17
+          ],
+          "product_path_same_lineage": [],
+          "reactant_atoms": [
+            7,
+            8
+          ],
+          "reactant_distance": 1,
+          "reactant_path": [
+            7,
+            8
+          ],
+          "stretch": 3
+        }
+      ]
+    },
+    "selected_piece_count_by_lineage": {
+      "R0/copy0": 4
+    },
+    "topology_counts": {
+      "active_lineage_count": 1,
+      "covered_product_atom_count": 11,
+      "foreign_or_unknown_bridge_atom_count": 2,
+      "foreign_or_unknown_bridged_break_count": 2,
+      "interlineage_product_bond_formed_count": 0,
+      "intralineage_product_bond_formed_count": 0,
+      "lineage_extra_block_count": 1,
+      "lineage_restricted_break_count": 2,
+      "lineage_split_event_count": 1,
+      "product_bond_touches_uncovered_atom_count": 19,
+      "product_byproduct_candidate_count": 0,
+      "product_partial_unmapped_fragment_count": 2,
+      "product_residual_atom_count": 14,
+      "product_residual_fragment_count": 2,
+      "reactant_bond_broken_count": 1,
+      "reactant_bond_deleted_or_unmapped_count": 3,
+      "reactant_bond_preserved_count": 9,
+      "reactant_residual_atom_count": 2,
+      "reactant_residual_fragment_count": 1,
+      "segment_contraction_count": 0,
+      "segment_contraction_total": 0,
+      "segment_stretch_count": 1,
+      "segment_stretch_total": 3,
+      "selected_piece_count": 4,
+      "uncovered_product_atom_count": 14
+    },
+    "uncovered_product_atoms": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "unused_reactant_atoms_by_active_lineage": {
+      "R0/copy0": [
+        9,
+        10
+      ]
+    }
+  },
+  "objective_value": 121.0,
+  "product_smiles": "O=[N+]([O-])c1cnc(N2OC3C=CC2CC3)c(N2OC3C=CC2CC3)c1",
+  "reactants": [
+    {
+      "atom_count": 13,
+      "bond_count": 14,
+      "reactant_id": 0,
+      "smiles": "O=[N+]([O-])c1cnc2no[n+]([O-])c2c1"
+    }
+  ],
+  "reaction_smiles": "O=[N+]([O-])c1cnc2no[n+]([O-])c2c1>>O=[N+]([O-])c1cnc(N2OC3C=CC2CC3)c(N2OC3C=CC2CC3)c1",
+  "selected_pieces": [
+    {
+      "candidate_id": 28,
+      "copy_id": 0,
+      "extra_product_edges": 0,
+      "preserved_bonds": 6,
+      "product_atoms": [
+        3,
+        4,
+        5,
+        6,
+        15,
+        24
+      ],
+      "r_to_p": {
+        "11": 15,
+        "12": 24,
+        "3": 3,
+        "4": 4,
+        "5": 5,
+        "6": 6
+      },
+      "reactant_atoms": [
+        3,
+        4,
+        5,
+        6,
+        11,
+        12
+      ],
+      "reactant_id": 0,
+      "score": 90.0,
+      "source": "nx_fragment"
+    },
+    {
+      "candidate_id": 111,
+      "copy_id": 0,
+      "extra_product_edges": 0,
+      "preserved_bonds": 2,
+      "product_atoms": [
+        0,
+        1,
+        2
+      ],
+      "r_to_p": {
+        "0": 0,
+        "1": 1,
+        "2": 2
+      },
+      "reactant_atoms": [
+        0,
+        1,
+        2
+      ],
+      "reactant_id": 0,
+      "score": 40.0,
+      "source": "nx_fragment"
+    },
+    {
+      "candidate_id": 246,
+      "copy_id": 0,
+      "extra_product_edges": 0,
+      "preserved_bonds": 0,
+      "product_atoms": [
+        7
+      ],
+      "r_to_p": {
+        "7": 7
+      },
+      "reactant_atoms": [
+        7
+      ],
+      "reactant_id": 0,
+      "score": 6.0,
+      "source": "nx_fragment"
+    },
+    {
+      "candidate_id": 250,
+      "copy_id": 0,
+      "extra_product_edges": 0,
+      "preserved_bonds": 0,
+      "product_atoms": [
+        17
+      ],
+      "r_to_p": {
+        "8": 17
+      },
+      "reactant_atoms": [
+        8
+      ],
+      "reactant_id": 0,
+      "score": 6.0,
+      "source": "nx_fragment"
+    }
+  ],
+  "selector": "ilp",
+  "status": "ilp"
+}
