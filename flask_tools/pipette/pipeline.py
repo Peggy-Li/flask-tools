@@ -11,7 +11,7 @@ import inspect
 import traceback
 
 from .config import PipetteConfig
-from .graph_rxn_mapper.subtractive_reaction_mapper_new import (
+from .graph_rxn_mapper.subtractive_reaction_mapper_pipette_tool import (
     GraphBasedBalancer,
     GraphBasedBalancerResultDetails,
 )
@@ -336,7 +336,7 @@ def build_default_pipeline(
     attribute of `ReactionChecker`).
     """
     # Edit this function when adding new `ReactionChecker`s
-    from .graph_rxn_mapper.subtractive_reaction_mapper_new import (
+    from .graph_rxn_mapper.subtractive_reaction_mapper_pipette_tool import (
         GraphBasedBalancer,
         LLMAtomMapper,
     )

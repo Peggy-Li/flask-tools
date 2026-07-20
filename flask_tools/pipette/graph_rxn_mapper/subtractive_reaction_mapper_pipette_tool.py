@@ -1,3 +1,10 @@
+###############################################################################
+## Copyright 2025-2026 Lawrence Livermore National Security, LLC.
+## See the top-level LICENSE file for details.
+##
+## SPDX-License-Identifier: Apache-2.0
+###############################################################################
+
 import json
 from pathlib import Path
 from typing import Any
@@ -10,10 +17,6 @@ from flask_tools.pipette.smiles import (
     clear_atom_maps_from_reaction,
 )
 from flask_tools.pipette.verifiers import ReactionChecker
-from flask_tools.pipette.reaction_fixer import (
-    AsyncLLMReactionFixer,
-    BaseLLMReactionFixer,
-)
 from . import llm_benchmark_reactions
 from .llm_benchmark_reactions import mapped_reaction_from_pairs
 from .subtractive_reaction_mapper_v3 import (
@@ -28,7 +31,7 @@ from ..constants import (
     ToolStatus,
     resolve_llm_api_key,
 )
-from ..llm_query import _run_coroutine_sync, query_task, query_task_async
+from ..llm_query import _run_coroutine_sync, query_task_async
 
 """
 Overall flow

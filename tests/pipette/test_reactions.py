@@ -25,7 +25,7 @@ from flask_tools.pipette import ToolResult, ToolStatus, FinalGrade
 from flask_tools.pipette.constants import FinalGrade, ReactionGrade
 from flask_tools.pipette.grade_rxn import grade_reaction, main
 from flask_tools.pipette.config import load_config, ConfigType, PipetteConfig
-from flask_tools.pipette.graph_rxn_mapper.subtractive_reaction_mapper_new import (
+from flask_tools.pipette.graph_rxn_mapper.subtractive_reaction_mapper_pipette_tool import (
     GraphBasedBalancerResultDetails,
     AtomMappingResultDetails,
 )

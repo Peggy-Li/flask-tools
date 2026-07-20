@@ -1,3 +1,10 @@
+###############################################################################
+## Copyright 2025-2026 Lawrence Livermore National Security, LLC.
+## See the top-level LICENSE file for details.
+##
+## SPDX-License-Identifier: Apache-2.0
+###############################################################################
+
 #!/usr/bin/env python3
 """
 Subtractive common-subgraph atom mapper for reaction topology analysis.
