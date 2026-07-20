@@ -11,6 +11,10 @@ import inspect
 import traceback
 
 from .config import PipetteConfig
+from .graph_rxn_mapper.subtractive_reaction_mapper_new import (
+    GraphBasedBalancer,
+    GraphBasedBalancerResultDetails,
+)
 from .verifiers import (
     BasicSmilesValidationChecker,
     ChargeConservationChecker,
@@ -22,7 +26,11 @@ from .verifiers import (
 from .verifiers.base import CacheableReactionChecker
 from .judge import AsyncLLMJudge
 from .constants import ReactionGrade, ToolResult, ToolStatus, ToolResultsDict
-from .reaction_fixer import AsyncLLMReactionFixer, ReactionFixResultDetails
+from .reaction_fixer import (
+    AsyncLLMReactionFixer,
+    ReactionFixResultDetails,
+    BaseLLMReactionFixer,
+)
 from .smiles import canonicalize_reaction_smiles
 from .llm_query import _run_coroutine_sync
 
@@ -153,56 +161,6 @@ class GradingPipeline:
             comment=result.comment,
         )
 
-    @staticmethod
-    def _build_fix_result(fix: ReactionFixResultDetails) -> ToolResult:
-        return ToolResult(
-            name="llm_reaction_fix",
-            status=ToolStatus.PASS,
-            data=fix,
-            comment="LLM proposed a corrected reaction",
-        )
-
-    @staticmethod
-    async def attempt_llm_fix_async(
-        reaction_fixer: BaseLLMReactionFixer,
-        rxn_smiles: str,
-        tool_results: ToolResultsDict,
-    ) -> tuple[ToolResult, str | None] | None:
-        if reaction_fixer is None:
-            return None
-
-        try:
-            fix_result = reaction_fixer.fix(
-                rxn_smiles,
-                list(tool_results.values()),
-            )
-            fix = await fix_result if inspect.isawaitable(fix_result) else fix_result
-        except Exception as exc:
-            return (
-                ToolResult(
-                    name="llm_reaction_fix",
-                    status=ToolStatus.ERROR,
-                    data=None,
-                    comment=f"LLM reaction fixer failed: {exc}",
-                ),
-                None,
-            )
-
-        if fix.fixed_reaction_smiles == canonicalize_reaction_smiles(
-            rxn_smiles, include_agents=True
-        ):
-            return (
-                ToolResult(
-                    name="llm_reaction_fix",
-                    status=ToolStatus.UNKNOWN,
-                    data=fix,
-                    comment="LLM reaction fixer did not propose a changed reaction.",
-                ),
-                None,
-            )
-
-        return GradingPipeline._build_fix_result(fix), fix.fixed_reaction_smiles
-
     async def _finalize_grade_async(
         self,
         rxn_smiles: str,
@@ -231,6 +189,8 @@ class GradingPipeline:
         fix_attempted: bool = False,
         previous_tool_results: ToolResultsDict | None = None,
     ) -> ReactionGrade:
+        run_at_most_once = [GraphBasedBalancer.name]
+
         async def maybe_call_fixer() -> ReactionGrade | None:
             if not (self.config.settings.use_fixing and not fix_attempted):
                 # and self._should_try_llm_fix(context)
@@ -238,7 +198,7 @@ class GradingPipeline:
 
             if (rxn_smiles, "llm_reaction_fix") in previous_tool_results:
                 raise RuntimeError("llm_reaction_fix already ran")
-            fix_attempt = await self.attempt_llm_fix_async(
+            fix_attempt = await BaseLLMReactionFixer.attempt_llm_fix_async(
                 self.reaction_fixer,
                 rxn_smiles,
                 all_tool_results,
@@ -254,13 +214,36 @@ class GradingPipeline:
                     )
             return None
 
+        def is_tool_to_call_fixer_after(checker_name: str) -> bool:
+            if checker_name in (ExactMatchChecker.name, GraphBasedBalancer.name):
+                if (
+                    GraphBasedBalancer.name in checker_names
+                    and checker_name == ExactMatchChecker.name
+                ):
+                    # Two natural points to call the LLM balancer at. Only call one.
+                    return False
+                return True
+            return False
+
         previous_tool_results = previous_tool_results or {}
+        previous_tool_names = [
+            checker_name for (_rxn_smi, checker_name) in previous_tool_results.keys()
+        ]
         all_tool_results: ToolResultsDict = previous_tool_results.copy()
         should_skip_remaining = False
         skip_reason = ""
 
+        checker_names = [c.name for c in self.checkers]
+
         for checker in self.checkers:
             if (rxn_smiles, checker.name) in previous_tool_results:
+                continue
+            if checker.name in run_at_most_once and checker.name in previous_tool_names:
+                # Run fixer for steps that
+                if is_tool_to_call_fixer_after(checker.name):
+                    none_or_fixed_and_graded = await maybe_call_fixer()
+                    if none_or_fixed_and_graded is not None:
+                        return none_or_fixed_and_graded
                 continue
             if should_skip_remaining:
                 result = checker.skipped(skip_reason)
@@ -285,10 +268,26 @@ class GradingPipeline:
             # prefix.append((rxn_smiles, checker.name, result))
             all_tool_results[(rxn_smiles, checker.name)] = result
 
-            # Reaction fixing / infilling of byproducts
-            # If LLM fixing returned a value, call new grade_one with new rxn and
+            # Actions that change the smiles, calling grade_one_async again.
+            # IE, balancing / fixing.
+            # If fixing/balancing returned a value, call new grade_one with new rxn and
             # it's main tool result list will start from the new rxn
-            if checker.name == "exact_match":
+
+            # Graph based balancer
+            if checker.name == GraphBasedBalancer.name:
+                result: ToolResult
+                if result.status == ToolStatus.PASS:
+                    d: GraphBasedBalancerResultDetails = result.data
+                    if (
+                        d.original_reaction_smiles != d.graph_balanced_reaction_smiles
+                    ):  # Does this need canonicalization?
+                        return await self.grade_one_async(
+                            d.graph_balanced_reaction_smiles,
+                            fix_attempted=False,
+                            previous_tool_results=all_tool_results,
+                        )
+            # LLM fixer
+            if is_tool_to_call_fixer_after(checker.name):
                 none_or_fixed_and_graded = await maybe_call_fixer()
                 if none_or_fixed_and_graded is not None:
                     return none_or_fixed_and_graded

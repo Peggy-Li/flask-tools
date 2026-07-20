@@ -100,16 +100,6 @@ def smiles_to_inchi(smiles: str) -> str:
     return inchi
 
 
-def remove_atom_mapping_from_smiles(smi: str) -> str | None:
-    """Returns None if smi is invalid"""
-    mol = Chem.MolFromSmiles(smi)
-    if not mol:
-        return None
-    for atom in mol.GetAtoms():
-        atom.SetAtomMapNum(0)
-    return Chem.MolToSmiles(mol)
-
-
 def mol_from_side(side: str) -> Chem.Mol:
     if not side:
         return Chem.Mol()

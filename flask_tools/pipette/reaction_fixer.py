@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
+import inspect
 import json
 from pathlib import Path
 from typing import Any, Literal, TypeVar
@@ -16,7 +17,13 @@ from typing import Any, Literal, TypeVar
 from pydantic import BaseModel
 
 from .config import PipetteConfig
-from .constants import ToolResult, resolve_llm_api_key, ToolResultDetails
+from .constants import (
+    ToolStatus,
+    ToolResult,
+    ToolResultsDict,
+    resolve_llm_api_key,
+    ToolResultDetails,
+)
 from .llm_query import query_task, query_task_async
 from .smiles import (
     canonicalize_reaction_smiles,
@@ -148,6 +155,53 @@ class BaseLLMReactionFixer:
             ),
             reasoning_summary=parsed.comment,
         )
+
+    @staticmethod
+    async def attempt_llm_fix_async(
+        reaction_fixer: BaseLLMReactionFixer,
+        rxn_smiles: str,
+        tool_results: ToolResultsDict,
+    ) -> tuple[ToolResult, str | None] | None:
+        if reaction_fixer is None:
+            return None
+
+        try:
+            fix_result = reaction_fixer.fix(
+                rxn_smiles,
+                list(tool_results.values()),
+            )
+            fix = await fix_result if inspect.isawaitable(fix_result) else fix_result
+        except Exception as exc:
+            return (
+                ToolResult(
+                    name="llm_reaction_fix",
+                    status=ToolStatus.ERROR,
+                    data=None,
+                    comment=f"LLM reaction fixer failed: {exc}",
+                ),
+                None,
+            )
+
+        if fix.fixed_reaction_smiles == canonicalize_reaction_smiles(
+            rxn_smiles, include_agents=True
+        ):
+            return (
+                ToolResult(
+                    name="llm_reaction_fix",
+                    status=ToolStatus.UNKNOWN,
+                    data=fix,
+                    comment="LLM reaction fixer did not propose a changed reaction.",
+                ),
+                None,
+            )
+
+        tool_res = ToolResult(
+            name="llm_reaction_fix",
+            status=ToolStatus.PASS,
+            data=fix,
+            comment="LLM proposed a corrected reaction",
+        )
+        return tool_res, fix.fixed_reaction_smiles
 
     @staticmethod
     def _build_user_payload(

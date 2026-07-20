@@ -25,6 +25,10 @@ from flask_tools.pipette import ToolResult, ToolStatus, FinalGrade
 from flask_tools.pipette.constants import FinalGrade, ReactionGrade
 from flask_tools.pipette.grade_rxn import grade_reaction, main
 from flask_tools.pipette.config import load_config, ConfigType, PipetteConfig
+from flask_tools.pipette.graph_rxn_mapper.subtractive_reaction_mapper_new import (
+    GraphBasedBalancerResultDetails,
+    AtomMappingResultDetails,
+)
 from flask_tools.pipette.pipeline import GradingPipeline
 from flask_tools.pipette.reaction_fixer import ReactionFixResultDetails
 from flask_tools.pipette.verifiers import ChargeConservationChecker, ReactionChecker
@@ -107,13 +111,52 @@ def test_calls_fixer_caffeine_llm_judge(rxn_name: str) -> None:
     ), f"{(result.final_grade, fix_result)}"
 
 
+expected_tool_call_order = {
+    (NO_GRAPH_BALANCER_TOOLS := "no_graph_balancer"): [
+        "basic_smiles_validation",
+        "exact_match",
+        "llm_reaction_fix",
+        # This assumes llm_reaction_fix produced a changed rxn. Otherwise, it would not start over
+        "basic_smiles_validation",
+        "exact_match",
+        "charge_conservation",
+        "mass_conservation",
+        "reaction_energy",
+    ],
+    (WITH_GRAPH_BALANCER_TOOLS := "graph_balancer"): [
+        "basic_smiles_validation",
+        "exact_match",
+        "graph_based_balancing",
+        "basic_smiles_validation",
+        "exact_match",
+        "llm_reaction_fix",  # T
+        "basic_smiles_validation",
+        "exact_match",
+        "llm_atom_mapping",
+        "charge_conservation",
+        "mass_conservation",
+        "reaction_energy",
+    ],
+}
+
+
 @pytest.mark.llm_query
+@pytest.mark.parametrize(
+    "tool_set_name", [NO_GRAPH_BALANCER_TOOLS, WITH_GRAPH_BALANCER_TOOLS]
+)
 def test_pipeline_fixed_reaction(
+    tool_set_name: str,
     tests_relative_path,
 ) -> None:
     # In-depth test that checks that ever single expected tool is called
-    original = "CCO>>C=C"
-    fixed = "CCO>>C=C.O"
+    # Still calls LLM judge so the rxn has to be reasonable
+    # A simple rxn without dimerization
+    # original = "CCO>>C=C"
+    # fixed = "CCO>>C=C.O"
+    # aldol condensation of acetaldehyde to crotonaldehyde, which both dimerizes and drops water
+    original = "CC=O>>CC=CC=O"
+    graph_balanced_hopefully = "CC=O.CC=O>>CC=CC=O"
+    fixed = "CC=O.CC=O>>CC=CC=O.O"
 
     smiles_validation = SpyChecker(
         "basic_smiles_validation",
@@ -163,6 +206,40 @@ def test_pipeline_fixed_reaction(
         ),
     )
 
+    graph_balancer = SpyChecker(
+        "graph_based_balancing",
+        lambda rxn_smiles, _: ToolResult(
+            name="graph_based_balancing",
+            status=ToolStatus.PASS,
+            comment="Passed",
+            data=GraphBasedBalancerResultDetails(
+                original_reaction_smiles=original,
+                graph_balanced_reaction_smiles=graph_balanced_hopefully,
+                graph_mapped_reaction_smiles="",
+                final_balanced_reaction_smiles="",
+                objective_value=100,
+                mapper_status="",
+                reasoning_summary="",
+            ),
+        ),
+    )
+
+    llm_atom_mapper = SpyChecker(
+        "llm_atom_mapping",
+        lambda rxn_smiles, _: ToolResult(
+            name="llm_atom_mapping",
+            status=ToolStatus.PASS,
+            comment="Passed",
+            data=AtomMappingResultDetails(
+                input_reaction_smiles=rxn_smiles,
+                mapped_reaction_smiles="",
+                product_to_reactant=[],
+                confidence=0.9,
+                reasoning_summary="",
+            ),
+        ),
+    )
+
     class StubReactionFixer:
         # Have a fixed LLM fixer step to better test LLM judge step
         def __init__(self) -> None:
@@ -172,12 +249,9 @@ def test_pipeline_fixed_reaction(
             self, rxn_smiles: str, results: list[ToolResult]
         ) -> ReactionFixResultDetails:
             self.calls.append(rxn_smiles)
-            assert [result.name for result in results] == [
-                "basic_smiles_validation",
-                "exact_match",
-                # "charge_conservation",
-                # "mass_conservation",
-            ]
+            assert [result.name for result in results] == expected_tool_call_order[
+                tool_set_name
+            ][: expected_tool_call_order[tool_set_name].index("llm_reaction_fix")]
             return ReactionFixResultDetails(
                 original_reaction_smiles=rxn_smiles,
                 fixed_reaction_smiles=fixed,
@@ -185,12 +259,26 @@ def test_pipeline_fixed_reaction(
                 added_reactants=[],
                 removed_products=[],
                 added_products=["O"],
-                reasoning_summary="Removed the agent and balanced both sides with water.",
+                reasoning_summary="Balanced both sides with water.",
             )
 
     fixer = StubReactionFixer()
+    if tool_set_name == NO_GRAPH_BALANCER_TOOLS:
+        tool_list = [smiles_validation, exact, charge, mass, reaction_energy]
+    elif tool_set_name == WITH_GRAPH_BALANCER_TOOLS:
+        tool_list = [
+            smiles_validation,
+            exact,
+            graph_balancer,
+            llm_atom_mapper,
+            charge,
+            mass,
+            reaction_energy,
+        ]
+    else:
+        raise ValueError(f"{tool_set_name=}")
     pipeline = GradingPipeline(
-        checkers=[smiles_validation, exact, charge, mass, reaction_energy],
+        checkers=tool_list,
         config=PipetteConfig(mode="exact"),
         reaction_fixer=fixer,  # noqa
     )
@@ -218,24 +306,28 @@ def test_pipeline_fixed_reaction(
     #     # assert res_dict == prev_res_dict
     #     assert json.loads(json.dumps(res_dict)) == prev_res_dict
 
-    assert smiles_validation.calls == [original, fixed]
-    assert exact.calls == [original, fixed]
-    assert fixer.calls == [original]
+    assert [tool.name for tool in result.results] == expected_tool_call_order[
+        tool_set_name
+    ]
+    if tool_set_name == NO_GRAPH_BALANCER_TOOLS:
+        assert smiles_validation.calls == [original, fixed]
+        assert exact.calls == [original, fixed]
+    else:
+        assert smiles_validation.calls == [original, graph_balanced_hopefully, fixed]
+        assert exact.calls == [original, graph_balanced_hopefully, fixed]
+    assert fixer.calls == [graph_balanced_hopefully]
     assert charge.calls == [fixed]
     assert mass.calls == [fixed]
     assert reaction_energy.calls == [fixed]
-    assert [tool.name for tool in result.results] == [
-        "basic_smiles_validation",
-        "exact_match",
-        "llm_reaction_fix",
-        "basic_smiles_validation",
-        "exact_match",
-        "charge_conservation",
-        "mass_conservation",
-        "reaction_energy",
-    ]
-    llm_fix_i = 2
-    assert result.results[llm_fix_i].data.original_reaction_smiles == original
+
+    llm_fix_i = expected_tool_call_order[tool_set_name].index("llm_reaction_fix")
+    if tool_set_name == NO_GRAPH_BALANCER_TOOLS:
+        assert result.results[llm_fix_i].data.original_reaction_smiles == original
+    else:
+        assert (
+            result.results[llm_fix_i].data.original_reaction_smiles
+            == graph_balanced_hopefully
+        )
     assert result.results[llm_fix_i].data.fixed_reaction_smiles == fixed
     try:
         assert result.final_grade == FinalGrade.LIKELY, result

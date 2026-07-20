@@ -22,14 +22,15 @@ class ReactionChecker(ABC):
         raise NotImplementedError
 
     async def arun(self, rxn_smiles: str, context: ToolResultsDict) -> ToolResult:
-        """A function to be overwritten by tools that benefit from async. Called in pipeline. Just calls the
-        sync run method by default.
-        Leaving `run()` makes non async tools simpler, and there are more sync tools.
+        """A function to be overwritten by tools that benefit from async. Actually what's called in pipeline.
+        This calls the sync run method by default.
+        Leaving `run()` in ReactionChecker makes writing non async tools simpler, and there are more non async tools.
         For async classes, you can define run like this:
         ```
         def run(self, rxn_smiles: str, context: ToolResultsDict) -> ToolResult:
             return _run_coroutine_sync(self.arun(rxn_smiles, context))
         ```
+        See LLMAtomMapper for an example of a class that uses this.
         """
         return self.run(rxn_smiles, context)
 

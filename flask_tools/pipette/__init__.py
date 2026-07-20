@@ -5,7 +5,6 @@
 ## SPDX-License-Identifier: Apache-2.0
 ###############################################################################
 
-from .grade_rxn import grade_reaction
 from .constants import FinalGrade, ReactionGrade, ToolResult, ToolStatus
 
 __all__ = [
@@ -15,3 +14,11 @@ __all__ = [
     "ToolStatus",
     "grade_reaction",
 ]
+
+
+def __getattr__(name: str):
+    if name == "grade_reaction":
+        from .grade_rxn import grade_reaction
+
+        return grade_reaction
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

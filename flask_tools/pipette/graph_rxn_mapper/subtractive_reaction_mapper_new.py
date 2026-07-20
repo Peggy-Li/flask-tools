@@ -4,11 +4,10 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from flask_tools.pipette import ToolResult
 from flask_tools.pipette.config import PipetteConfig, ReasoningEffort
 from flask_tools.pipette.smiles import (
-    remove_atom_mapping_from_smiles,
     split_reaction_smiles,
+    clear_atom_maps_from_reaction,
 )
 from flask_tools.pipette.verifiers import ReactionChecker
 from flask_tools.pipette.reaction_fixer import (
@@ -23,13 +22,13 @@ from .subtractive_reaction_mapper_v3 import (
 )
 from ..constants import (
     SmilesContainer,
+    ToolResult,
     ToolResultDetails,
     ToolResultsDict,
     ToolStatus,
     resolve_llm_api_key,
 )
-from ..llm_query import _run_coroutine_sync, query_task
-from ..pipeline import GradingPipeline
+from ..llm_query import _run_coroutine_sync, query_task, query_task_async
 
 """
 Overall flow
@@ -92,8 +91,9 @@ class GraphBasedBalancer(ReactionChecker):
         )
         # Rm atom mapping
         graph_mapped_smi = res.atom_mapped_reaction_smiles()
-        initial_balanced_smi = remove_atom_mapping_from_smiles(graph_mapped_smi)
+        initial_balanced_smi = clear_atom_maps_from_reaction(graph_mapped_smi)
         if initial_balanced_smi is None:
+            print(f"{rxn_smiles=}\n{graph_mapped_smi=}\n{initial_balanced_smi=}")
             return ToolResult(
                 name=self.name,
                 status=ToolStatus.ERROR,
@@ -101,32 +101,33 @@ class GraphBasedBalancer(ReactionChecker):
                 comment="Graph-based mapper produced an invalid atom-mapped reaction SMILES.",
             )
 
-        # Call the llm balancing (llm fixing) already in pipette
-        reaction_fixer = AsyncLLMReactionFixer.from_config(self.config)
-        llm_balanced_smi = None
-        if reaction_fixer is not None:
-            llm_balanced_smi: str | None
-            llm_balanced_tool_res, llm_balanced_smi = (
-                await GradingPipeline.attempt_llm_fix_async(
-                    reaction_fixer, initial_balanced_smi, context
-                )
-            )
-            context[(initial_balanced_smi, BaseLLMReactionFixer.name)] = (
-                llm_balanced_tool_res
-            )
-
-        if llm_balanced_smi is None:  # Error, no change, or balancer not enabled
-            llm_balanced_smi = initial_balanced_smi
-
-        new_reactants_smi, new_agents_smi, new_products_smi = split_reaction_smiles(
-            llm_balanced_smi
-        )
-        if new_agents_smi:
-            raise ValueError(
-                f"LLM balancing unexpectedly produced an agent. Input {initial_balanced_smi}, output {llm_balanced_smi} "
-            )
-
-        balanced_smi = f"{new_reactants_smi}>{agents_smi}>{new_products_smi}"
+        ## Call the llm balancing (llm fixing) already in pipette
+        # reaction_fixer = AsyncLLMReactionFixer.from_config(self.config)
+        # llm_balanced_smi = None
+        # if reaction_fixer is not None:
+        #     llm_balanced_smi: str | None
+        #     llm_balanced_tool_res, llm_balanced_smi = (
+        #         await reaction_fixer.attempt_llm_fix_async(
+        #             reaction_fixer, initial_balanced_smi, context
+        #         )
+        #     )
+        #     context[(initial_balanced_smi, BaseLLMReactionFixer.name)] = (
+        #         llm_balanced_tool_res
+        #     )
+        #
+        # if llm_balanced_smi is None:  # Error, no change, or balancer not enabled
+        #     llm_balanced_smi = initial_balanced_smi
+        #
+        # new_reactants_smi, new_agents_smi, new_products_smi = split_reaction_smiles(
+        #     llm_balanced_smi
+        # )
+        # if new_agents_smi:
+        #     raise ValueError(
+        #         f"LLM balancing unexpectedly produced an agent. Input {initial_balanced_smi}, output {llm_balanced_smi} "
+        #     )
+        #
+        # balanced_smi = f"{new_reactants_smi}>{agents_smi}>{new_products_smi}"
+        balanced_smi = "CCCC"  # todo remove
         return ToolResult(
             name=self.name,
             status=ToolStatus.PASS,
@@ -244,6 +245,11 @@ class LLMAtomMapper(ReactionChecker):
         }
 
     def run(
+        self, rxn_smiles: str, context: ToolResultsDict | None = None
+    ) -> ToolResult:
+        return _run_coroutine_sync(self.arun(rxn_smiles, context))
+
+    async def arun(
         self, rxn_smiles: str | SmilesContainer, context: ToolResultsDict | None = None
     ) -> ToolResult:
         """
@@ -268,14 +274,14 @@ class LLMAtomMapper(ReactionChecker):
 
         # Call LLM atom mapper
         user_prompt = json.dumps(
-            self._build_user_payload(rxn_smiles, list(context.values())),
+            self._build_user_payload(rxn_smiles, []),  # list(context.values())),
             indent=2,
             sort_keys=True,
         )
         system_prompt = self.system_prompt_path.read_text(encoding="utf-8")
         skill_prompt = self.skill_prompt_path.read_text(encoding="utf-8")
         system_prompt = f"{system_prompt}\n\nAdditional atom-mapping skill instructions:\n{skill_prompt}"
-        response_text = query_task(
+        response_text = await query_task_async(
             system_prompt=system_prompt,
             user_prompt=user_prompt,
             model=self.model,

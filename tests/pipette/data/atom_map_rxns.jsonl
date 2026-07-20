@@ -1,0 +1,5 @@
+{"id":"wallnut1","expected_output":"wallnut1.json","rxn_smiles":"O=[N+]([O-])c1cnc2no[n+]([O-])c2c1>>O=[N+]([O-])c1cnc(N2OC3C=CC2CC3)c(N2OC3C=CC2CC3)c1"}
+{"id":"wallnut2-dimer-fail-balance-fail-atom-mapping","expected_output":"wallnut2.json","rxn_smiles":"Cc1cc(C)n(-c2nnc(-n3nc(C)cc3C)nn2)n1.N*N>>Cc1cc(C)n(-c2nnc(N*Nc3nnc(-n4nc(C)cc4C)nn3)nn2)n1"}
+{"id":"wallnut3-dimer-atom-balanced-and-mapped","expected_output":"wallnut3.json","rxn_smiles":"Nc1nonc1-c1nnnn1O>[K+].[O-][Mn](=O)(=O)=O>On1nnnc1-c1nonc1/N=N\\c1nonc1-c1nnnn1O"}
+{"id":"golden-rdf1","expected_output":"golden-rdf1.json","rxn_smiles":"C=CCC(N)(c1ccccc1)c1ccccc1.O=CC(C(=O)N1CCOCC1)c1ccccc1>>C=CCC(N=C(c1ccccc1)c1ccccc1)C(C(=O)N1CCOCC1)c1ccccc1.O"}
+{"id":"golden-rdf2","expected_output":"golden-rdf2.json","rxn_smiles":"C=CC(O)C(C)N.C=CCSCC(C)=O>>C=C.CC(=O)CSC/C=C/C(O)C(C)N"}
