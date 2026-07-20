@@ -8,6 +8,9 @@ The current pipeline includes:
 - reaction SMILES parsing
 - basic SMILES validation
 - exact-match checker interfaces for reaction databases
+- graph based balancing - Attempt to balance reaction by adding copies of reactants. Good for dimerization reactions
+  - If this is enabled, the reaction fixing LLM is called here instead of later
+- atom mapping
 - reaction fixing LLM call
   - Run if no exact match is found
   - If new reaction is returned, goes back to start. Only allowed to run once in a pipeline

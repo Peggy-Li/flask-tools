@@ -159,6 +159,7 @@ class LLMConfig:
 @dataclass
 class LLMJudgeConfig(LLMConfig):
     allow_fail: Literal["all"] | list[str] = field(default_factory=list)
+    enable_atom_mapping_dict_in_prompt: bool = False
     prompt_path: Path = field(
         default_factory=lambda: package_config_path("judge-prompt.txt")
     )
@@ -179,8 +180,17 @@ class LLMJudgeConfig(LLMConfig):
                 raise ValueError(
                     "llm_judge.allow_fail must be 'all' or a list of tool names."
                 )
+        enable_atom_mapping_dict_in_prompt = mapping.get(
+            "enable_atom_mapping_dict_in_prompt",
+            cls.enable_atom_mapping_dict_in_prompt,
+        )
+        if not isinstance(enable_atom_mapping_dict_in_prompt, bool):
+            raise ValueError(
+                "llm_judge.enable_atom_mapping_dict_in_prompt must be a boolean."
+            )
         return cls(
             allow_fail=allow_fail if allow_fail == "all" else list(allow_fail),
+            enable_atom_mapping_dict_in_prompt=enable_atom_mapping_dict_in_prompt,
             **cls._llm_kwargs_from_mapping(
                 mapping,
                 name="llm_judge",

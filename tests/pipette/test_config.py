@@ -30,6 +30,7 @@ def test_pipette_config_from_yaml_loads_nested_sections(tmp_path) -> None:
             llm_judge:
               allow_fail:
                 - reaction_energy
+              enable_atom_mapping_dict_in_prompt: true
               url: https://example.test/v1/
               model: custom-model
               api_key: sk-test
@@ -71,6 +72,7 @@ def test_pipette_config_from_yaml_loads_nested_sections(tmp_path) -> None:
     # Test other attrs are set correctly
     assert config.tool_list == ["basic_smiles_validation", "reaction_energy"]
     assert config.llm_judge.allow_fail == ["reaction_energy"]
+    assert config.llm_judge.enable_atom_mapping_dict_in_prompt is True
     assert config.llm_judge.url == "https://example.test/v1/"
     assert config.llm_judge.model == "custom-model"
     assert config.llm_judge.api_key == "sk-test"

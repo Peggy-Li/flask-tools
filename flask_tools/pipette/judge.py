@@ -43,6 +43,7 @@ class BaseLLMJudge:
         api_key: str,
         prompt_path: Path,
         prompt: str | None = None,
+        enable_atom_mapping_dict_in_prompt: bool = False,
     ) -> None:
         self.url = url
         self.model = model
@@ -50,6 +51,7 @@ class BaseLLMJudge:
         self.api_key = api_key
         self.prompt_path = prompt_path
         self._prompt = prompt
+        self.enable_atom_mapping_dict_in_prompt = enable_atom_mapping_dict_in_prompt
 
     @classmethod
     def from_config(cls: type[_JudgeT], config: PipetteConfig) -> _JudgeT:
@@ -67,6 +69,9 @@ class BaseLLMJudge:
             api_key=api_key,
             prompt_path=config.llm_judge.prompt_path,
             prompt=config.llm_judge.prompt,
+            enable_atom_mapping_dict_in_prompt=(
+                config.llm_judge.enable_atom_mapping_dict_in_prompt
+            ),
         )
 
     @property
@@ -75,16 +80,24 @@ class BaseLLMJudge:
             return self._prompt
         return self.prompt_path.read_text(encoding="utf-8")
 
-    @staticmethod
     def _build_user_payload(
-        rxn_smiles: str, results: list[ToolResult]
+        self,
+        rxn_smiles: str,
+        results: list[ToolResult],
     ) -> dict[str, Any]:
         serialized_results: list[dict[str, object]] = [
             r.model_dump(exclude_none=True) for r in results
         ]
-        for s in serialized_results:
+        for result, serialized_result in zip(results, serialized_results):
+            s = serialized_result
             if "skipped_reason" in s:
                 del s["skipped_reason"]
+            if (
+                not self.enable_atom_mapping_dict_in_prompt
+                and result.name == "llm_atom_mapping"
+                and isinstance(s.get("data"), dict)
+            ):
+                s["data"].pop("product_to_reactant", None)
         user_payload = {
             "reaction_smiles": rxn_smiles,
             "tool_results": serialized_results,
