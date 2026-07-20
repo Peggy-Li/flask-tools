@@ -46,18 +46,15 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
-import itertools
 import json
 import math
-import sys
 from collections import Counter, defaultdict, deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import (
     Any,
     Dict,
     FrozenSet,
     Iterable,
-    Iterator,
     List,
     Mapping,
     Optional,
@@ -409,8 +406,7 @@ def build_atom_mapped_reaction_smiles(result: "SubtractiveMappingResult") -> str
 # ---------------------------------------------------------------------------
 
 
-# todo move these into pipette helpers or replace
-def parse_reaction_smiles(reaction_smiles: str) -> Tuple[str, str]:
+def parse_reaction_smiles_to_halves(reaction_smiles: str) -> Tuple[str, str]:
     """Return reactant_side, product_side for SMILES or reaction SMILES."""
     if ">>" in reaction_smiles:
         left, right = reaction_smiles.split(">>", 1)
@@ -2190,7 +2186,7 @@ def subtractive_map_reaction(
         cfg = dataclasses.replace(cfg, **config_overrides)
     if cfg.max_copies < 1:
         raise ValueError("max_copies must be at least 1.")
-    left, right = parse_reaction_smiles(reaction_smiles)
+    left, right = parse_reaction_smiles_to_halves(reaction_smiles)
     reactants = split_reactant_components(left)
     product_mol = mol_from_side(right)
     product_graph = mol_to_nx(product_mol)

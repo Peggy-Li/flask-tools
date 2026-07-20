@@ -7,8 +7,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from rdkit import Chem
 from rdkit.Chem.rdchem import Mol
 
