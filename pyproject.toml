@@ -33,6 +33,7 @@ include = ["flask_tools*"]
 # This creates the console script
 [project.scripts]
 flask-tools-install = "flask_tools.install:main"
+pipette = "flask_tools.pipette.grade_rxn:main"
 
 [project.optional-dependencies]
 rdkit = ["rdkit>=2025.3.6"]
