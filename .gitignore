@@ -1,3 +1,5 @@
+flask_tools/pipette/_java_build/
+
 # Logs
 logs
 *.log

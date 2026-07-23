@@ -239,3 +239,42 @@ config = PipetteConfig.from_yaml("my-config.yaml")
 `pytest`
 Or
 `pytest -m llm_query` to run the tests that use LLM
+
+# ReactionDecoder / RDT
+
+`pipette` now includes a Python wrapper around the Java-based ReactionDecoder Tool.
+The Java helper entrypoint lives in this repo, so you do not need to maintain a fork of `ReactionDecoder`.
+
+Build the fat jar:
+
+```bash
+./scripts/install_rdt.sh
+export PIPETTE_RDT_JAR=/absolute/path/to/ReactionDecoder/target/rdt-4.0.0-jar-with-dependencies.jar
+export PIPETTE_RDT_HELPER_BUILD_DIR=/absolute/path/to/flask-tools/flask_tools/pipette/_java_build
+```
+
+Use it from Python:
+
+```python
+from flask_tools.pipette.rdt import (
+    map_reaction_smiles_with_rdt,
+    map_reaction_smiles_list_with_rdt,
+)
+
+mapped = map_reaction_smiles_with_rdt("CC(=O)O.OCC>>CC(=O)OCC.O")
+mapped_many = map_reaction_smiles_list_with_rdt(
+    [
+        "CC(=O)O.OCC>>CC(=O)OCC.O",
+        "CCO>>CC=O",
+    ]
+)
+```
+
+Or from the CLI:
+
+```bash
+pipette-rdt --rxn-smi 'CC(=O)O.OCC>>CC(=O)OCC.O'
+pipette-rdt --file reactions.txt --json
+```
+
+If the input uses `reactants>agents>products`, the wrapper strips agents for RDT, maps the core reaction, and then reinserts the original agents into the returned reaction SMILES.
