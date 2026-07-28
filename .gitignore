@@ -1,4 +1,9 @@
 flask_tools/pipette/_java_build/
+.podman-run/
+.podman-root/
+.podman-runroot/
+.podman-tmp/
+.rdt-podman.env
 
 # Logs
 logs

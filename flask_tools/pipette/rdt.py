@@ -27,6 +27,8 @@ from .smiles import split_reaction_smiles
 RDT_JAR_ENV_VAR = "PIPETTE_RDT_JAR"
 RDT_REPO_ENV_VAR = "PIPETTE_RDT_REPO"
 RDT_HELPER_BUILD_ENV_VAR = "PIPETTE_RDT_HELPER_BUILD_DIR"
+RDT_JAVA_BIN_ENV_VAR = "PIPETTE_RDT_JAVA_BIN"
+RDT_JAVAC_BIN_ENV_VAR = "PIPETTE_RDT_JAVAC_BIN"
 RDT_MAIN_CLASS = "flask_tools.pipette.java.PipetteAtomMapperCli"
 
 
@@ -51,6 +53,16 @@ def _helper_build_dir() -> Path:
     if env_path:
         return Path(env_path).expanduser().resolve()
     return Path(__file__).resolve().with_name("_java_build")
+
+
+def _default_java_bin() -> str:
+    """Return the configured Java executable."""
+    return os.environ.get(RDT_JAVA_BIN_ENV_VAR, "java")
+
+
+def _default_javac_bin() -> str:
+    """Return the configured javac executable."""
+    return os.environ.get(RDT_JAVAC_BIN_ENV_VAR, "javac")
 
 
 def _resolve_jar_from_repo(repo_path: Path) -> Path | None:
@@ -116,11 +128,13 @@ def ensure_rdt_helper_compiled(
     *,
     jar_path: str | Path | None = None,
     repo_path: str | Path | None = None,
-    javac_bin: str = "javac",
+    javac_bin: str | None = None,
     build_dir: str | Path | None = None,
 ) -> Path:
+    """Compile the local Java helper against the selected RDT jar."""
     resolved_jar = resolve_rdt_jar_path(jar_path=jar_path, repo_path=repo_path)
     source_path = _helper_source_path()
+    javac_bin = javac_bin or _default_javac_bin()
     output_dir = (
         Path(build_dir).expanduser().resolve()
         if build_dir is not None
@@ -161,14 +175,16 @@ def map_reaction_smiles_list_with_rdt(
     *,
     jar_path: str | Path | None = None,
     repo_path: str | Path | None = None,
-    java_bin: str = "java",
-    javac_bin: str = "javac",
+    java_bin: str | None = None,
+    javac_bin: str | None = None,
 ) -> list[str]:
+    """Map a batch of reaction SMILES strings with the RDT helper CLI."""
     if not reaction_smiles_list:
         return []
 
     prepared = [_prepare_reaction_smiles(smiles) for smiles in reaction_smiles_list]
     resolved_jar = resolve_rdt_jar_path(jar_path=jar_path, repo_path=repo_path)
+    java_bin = java_bin or _default_java_bin()
     helper_build_dir = ensure_rdt_helper_compiled(
         jar_path=resolved_jar,
         javac_bin=javac_bin,
@@ -249,9 +265,10 @@ def map_reaction_smiles_with_rdt(
     *,
     jar_path: str | Path | None = None,
     repo_path: str | Path | None = None,
-    java_bin: str = "java",
-    javac_bin: str = "javac",
+    java_bin: str | None = None,
+    javac_bin: str | None = None,
 ) -> str:
+    """Map one reaction SMILES string with the RDT helper CLI."""
     return map_reaction_smiles_list_with_rdt(
         [reaction_smiles],
         jar_path=jar_path,
@@ -297,13 +314,13 @@ def main() -> int:
     )
     parser.add_argument(
         "--java-bin",
-        default="java",
-        help="Java executable to use.",
+        default=_default_java_bin(),
+        help=f"Java executable to use. Defaults to {RDT_JAVA_BIN_ENV_VAR} or 'java'.",
     )
     parser.add_argument(
         "--javac-bin",
-        default="javac",
-        help="javac executable to use for compiling the local helper.",
+        default=_default_javac_bin(),
+        help=f"javac executable to use for compiling the local helper. Defaults to {RDT_JAVAC_BIN_ENV_VAR} or 'javac'.",
     )
     parser.add_argument(
         "--json",
