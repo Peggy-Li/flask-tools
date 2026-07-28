@@ -242,27 +242,17 @@ Or
 
 # ReactionDecoder / RDT
 
-`pipette` now includes a Python wrapper around the Java-based ReactionDecoder Tool.
-The Java helper entrypoint lives in this repo, so you do not need to maintain a fork of `ReactionDecoder`.
+`pipette` includes a Python wrapper around the Java-based ReactionDecoder Tool (RDT). There is accomplished with a short Java wrapper script that calls ReactionDecoder, and gets called by the Python wrapper script.
 
-Build the fat jar on the host:
+To compile the Java wrapper script, you must first build a fat jar of RDT.
+
+You must have Java 25 installed. Check your existing java with `java --version`. The `install_rdt.sh` script will install Java and Maven, and then compile the RDT java wrapper.
 
 ```bash
 ./scripts/install_rdt.sh
 export PIPETTE_RDT_JAR=/absolute/path/to/ReactionDecoder/target/rdt-4.0.0-jar-with-dependencies.jar
 export PIPETTE_RDT_HELPER_BUILD_DIR=/absolute/path/to/flask-tools/flask_tools/pipette/_java_build
 ```
-
-Or build and run entirely through Podman:
-
-```bash
-./install_rdt_podman.sh /usr/WS2/li54/flask/lib/ReactionDecoder
-source ./.rdt-podman.env
-```
-
-The Podman setup writes `PIPETTE_RDT_JAVA_BIN` and `PIPETTE_RDT_JAVAC_BIN` so
-`flask_tools.pipette.rdt` uses containerized `java` and `javac` instead of host
-tooling.
 
 Use it from Python:
 
@@ -285,6 +275,7 @@ Or from the CLI:
 
 ```bash
 pipette-rdt --rxn-smi 'CC(=O)O.OCC>>CC(=O)OCC.O'
+# Outputs [O:3]=[C:2]([OH:4])[CH3:1].[OH:5][CH2:6][CH3:7]>>[O:5]([C:2]([CH3:1])=[O:4])[CH2:6][CH3:7].[OH2:3]
 pipette-rdt --file reactions.txt --json
 ```
 

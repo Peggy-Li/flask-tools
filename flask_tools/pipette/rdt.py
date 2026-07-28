@@ -104,7 +104,7 @@ def resolve_rdt_jar_path(
     searched = ", ".join(str(path) for path in candidate_repos)
     raise FileNotFoundError(
         "Could not locate an RDT fat jar. Set "
-        f"{RDT_JAR_ENV_VAR}, pass jar_path=..., or build one in one of: {searched}"
+        f"{RDT_JAR_ENV_VAR}, pass jar_path=..., or build one in a default location like: {searched}"
     )
 
 
