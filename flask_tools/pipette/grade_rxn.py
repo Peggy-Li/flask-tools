@@ -80,7 +80,7 @@ def _build_output_records(
         {
             "rxn_smiles": rxn_smiles,
             "cleaned_rxn_smiles": _get_possible_fixed_rxn_smi(result) or rxn_smiles,
-            "grade": result.model_dump(mode="json"),
+            "grade": result.model_dump(mode="json", exclude_none=True),
         }
         for rxn_smiles, result in zip(rxn_smiles_list, results, strict=True)
     ]

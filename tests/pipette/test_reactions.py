@@ -132,7 +132,8 @@ expected_tool_call_order = {
         "llm_reaction_fix",  # T
         "basic_smiles_validation",
         "exact_match",
-        "llm_atom_mapping",
+        "rdt_atom_mapping",
+        # "llm_atom_mapping",
         "charge_conservation",
         "mass_conservation",
         "reaction_energy",

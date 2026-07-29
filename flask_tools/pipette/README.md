@@ -153,20 +153,14 @@ The tools can also be disabled by setting `tool_list: null` in the the config.
           "skipped_reason": null
         },
         {
-          "name": "llm_reaction_fix",
+          "name": "RDTAtomMapper",
           "status": "pass",
           "data": {
-            "original_reaction_smiles": "Cn1cnc2c1c(=O)[nH]c(=O)n2C.CI>>CN1C=NC2=C1C(=O)N(C(=O)N2C)C",
-            "fixed_reaction_smiles": "CI.Cn1cnc2c1c(=O)[nH]c(=O)n2C>>Cn1c(=O)c2c(ncn2C)n(C)c1=O.[H+].[I-]",
-            "removed_agents": [],
-            "added_reactants": [],
-            "added_products": [
-              "[H+]",
-              "[I-]"
-            ]
+            "input_reaction_smiles": "CI.Cn1cnc2c1c(=O)[nH]c(=O)n2C>>Cn1c(=O)c2c(ncn2C)n(C)c1=O.I",
+            "mapped_reaction_smiles": "[O:10]=[C:9]1[NH:11][C:12](=[O:13])[N:14]([C:7]=2[N:6]=[CH:5][N:4]([C:8]12)[CH3:3])[CH3:15].[I:2][CH3:1]>>[N:14]1([C:7]=2[N:6]=[CH:5][N:4]([CH3:3])[C:8]2[C:9]([N:11]([CH3:1])[C:12]1=[O:13])=[O:10])[CH3:15].[IH:2]",
+            "product_to_reactant": []
           },
-          "comment": "N-methylation of the xanthine NH with methyl iodide requires HI as the byproduct, represented as [H+] and [I-]. No agents were present to remove.",
-          "skipped_reason": null
+          "comment": "RDT atom mapping completed."
         },
         {
           "name": "basic_smiles_validation",
@@ -242,7 +236,9 @@ Or
 
 # ReactionDecoder / RDT
 
-`pipette` includes a Python wrapper around the Java-based ReactionDecoder Tool (RDT). There is accomplished with a short Java wrapper script that calls ReactionDecoder, and gets called by the Python wrapper script.
+`pipette` includes a Python wrapper around the Java-based [ReactionDecoder Tool](https://github.com/asad/ReactionDecoder) (RDT). There is accomplished with a short Java wrapper script that calls ReactionDecoder, and gets called by the Python wrapper script.
+
+The wrapper uses `RDT`'s built-in defaults for mapping options.
 
 To compile the Java wrapper script, you must first build a fat jar of RDT.
 
@@ -257,17 +253,17 @@ export PIPETTE_RDT_HELPER_BUILD_DIR=/absolute/path/to/flask-tools/flask_tools/pi
 Use it from Python:
 
 ```python
-from flask_tools.pipette.rdt import (
-    map_reaction_smiles_with_rdt,
-    map_reaction_smiles_list_with_rdt,
+from flask_tools.pipette.verifiers.rdt import (
+  map_reaction_smiles_with_rdt,
+  map_reaction_smiles_list_with_rdt,
 )
 
 mapped = map_reaction_smiles_with_rdt("CC(=O)O.OCC>>CC(=O)OCC.O")
 mapped_many = map_reaction_smiles_list_with_rdt(
-    [
-        "CC(=O)O.OCC>>CC(=O)OCC.O",
-        "CCO>>CC=O",
-    ]
+  [
+    "CC(=O)O.OCC>>CC(=O)OCC.O",
+    "CCO>>CC=O",
+  ]
 )
 ```
 

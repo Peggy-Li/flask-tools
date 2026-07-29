@@ -6,10 +6,8 @@
 ###############################################################################
 
 """
-A python wrapper to call a java script that calls RDT for atom mapping
-Will compile against the RDT jar. See env vars.
-
-
+A python wrapper to call Reaction Decoder Tool (RDT) for atom mapping, through a java wrapper script.
+Will compile against the RDT jar if the pipette java wrapper is not already compiled. See env vars.
 """
 
 from __future__ import annotations
@@ -22,7 +20,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
-from .smiles import split_reaction_smiles
+from flask_tools.pipette.smiles import split_reaction_smiles
 
 RDT_JAR_ENV_VAR = "PIPETTE_RDT_JAR"
 RDT_REPO_ENV_VAR = "PIPETTE_RDT_REPO"
@@ -34,18 +32,22 @@ RDT_MAIN_CLASS = "flask_tools.pipette.java.PipetteAtomMapperCli"
 
 @dataclass(frozen=True)
 class _PreparedReaction:
+    # To remove and reintroduce agents during mapping
     original_smiles: str
     stripped_smiles: str
     agents_smiles: str
 
 
 def _default_rdt_repo_path() -> Path:
-    repo_root = Path(__file__).resolve().parents[2]
+    # Almost the same lvl as the flask_tools repo, under a lib folder. A really arbitrary default.
+    repo_root = Path(__file__).resolve().parents[3]
     return repo_root.parent / "lib" / "ReactionDecoder"
 
 
 def _helper_source_path() -> Path:
-    return Path(__file__).resolve().with_name("java") / "PipetteAtomMapperCli.java"
+    return (
+        Path(__file__).resolve().parent.with_name("java") / "PipetteAtomMapperCli.java"
+    )
 
 
 def _helper_build_dir() -> Path:
@@ -65,8 +67,11 @@ def _default_javac_bin() -> str:
     return os.environ.get(RDT_JAVAC_BIN_ENV_VAR, "javac")
 
 
+JAR_GLOB: str = "target/*-jar-with-dependencies.jar"
+
+
 def _resolve_jar_from_repo(repo_path: Path) -> Path | None:
-    jar_candidates = sorted(repo_path.glob("target/*-jar-with-dependencies.jar"))
+    jar_candidates = sorted(repo_path.glob(JAR_GLOB))
     if not jar_candidates:
         return None
     return jar_candidates[-1]
@@ -104,7 +109,7 @@ def resolve_rdt_jar_path(
     searched = ", ".join(str(path) for path in candidate_repos)
     raise FileNotFoundError(
         "Could not locate an RDT fat jar. Set "
-        f"{RDT_JAR_ENV_VAR}, pass jar_path=..., or build one in a default location like: {searched}"
+        f"{RDT_JAR_ENV_VAR}, pass jar_path=..., or build one in a default location ({searched}), matching the glob string {JAR_GLOB}"
     )
 
 

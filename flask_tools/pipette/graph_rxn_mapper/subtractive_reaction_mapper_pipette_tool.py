@@ -5,13 +5,15 @@
 ## SPDX-License-Identifier: Apache-2.0
 ###############################################################################
 
+from __future__ import annotations
+
 import json
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 
-from flask_tools.pipette.config import PipetteConfig, ReasoningEffort
 from flask_tools.pipette.smiles import (
     split_reaction_smiles,
     clear_atom_maps_from_reaction,
@@ -20,6 +22,7 @@ from flask_tools.pipette.verifiers import ReactionChecker
 from . import llm_benchmark_reactions
 from .llm_benchmark_reactions import mapped_reaction_from_pairs
 from .subtractive_reaction_mapper_v3 import (
+    ReactionAtomMapperConfig as SubtractiveReactionAtomMapperConfig,
     subtractive_map_reaction,
     SubtractiveMappingResult,
 )
@@ -32,6 +35,10 @@ from ..constants import (
     resolve_llm_api_key,
 )
 from ..llm_query import _run_coroutine_sync, query_task_async
+from ..verifiers.rdt import map_reaction_smiles_with_rdt
+
+if TYPE_CHECKING:
+    from flask_tools.pipette.config import PipetteConfig, ReasoningEffort
 
 """
 Overall flow
@@ -64,7 +71,7 @@ class GraphBasedBalancer(ReactionChecker):
 
     def __init__(self, config: PipetteConfig) -> None:
         self.config = config
-        self.atom_map_config = config.tools_settings.reaction_mapper
+        self.atom_map_config = SubtractiveReactionAtomMapperConfig()
 
     def run(
         self, rxn_smiles: str, context: ToolResultsDict | None = None
@@ -175,8 +182,8 @@ class AtomMappingResultDetails(ToolResultDetails):
     input_reaction_smiles: str
     mapped_reaction_smiles: str
     product_to_reactant: list[AtomMapping]
-    confidence: float
-    reasoning_summary: str
+    confidence: float | None
+    reasoning_summary: str | None
 
 
 class LLMAtomMapper(ReactionChecker):
@@ -194,7 +201,6 @@ class LLMAtomMapper(ReactionChecker):
         skill_prompt_path: Path,
     ) -> None:
         self.config = config
-        self.atom_map_config = config.tools_settings.reaction_mapper
         self.url = url
         self.model = model
         self.reasoning_effort = reasoning_effort
@@ -323,4 +329,33 @@ class LLMAtomMapper(ReactionChecker):
                 reasoning_summary=parsed.reasoning_summary,
             ),
             comment="LLM atom mapping completed.",
+        )
+
+
+class RDTAtomMapper(ReactionChecker):
+    name = "RDTAtomMapper"
+
+    def run(
+        self, rxn_smiles: str | SmilesContainer, context: ToolResultsDict | None = None
+    ) -> ToolResult:
+        try:
+            atom_mapped_str = map_reaction_smiles_with_rdt(rxn_smiles)
+        except Exception as e:
+            return ToolResult(
+                name=self.name,
+                status=ToolStatus.FAIL,
+                data=None,
+                comment="LLM atom mapping failed.",  # todo: find the code for getting traceback
+            )
+        return ToolResult(
+            name=self.name,
+            status=ToolStatus.PASS,
+            data=AtomMappingResultDetails(
+                input_reaction_smiles=rxn_smiles,
+                mapped_reaction_smiles=atom_mapped_str,
+                product_to_reactant=[],  # Not readily available
+                confidence=None,
+                reasoning_summary=None,
+            ),
+            comment="RDT atom mapping completed.",
         )

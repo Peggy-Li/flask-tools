@@ -15,7 +15,6 @@ from typing import Any, Literal
 import yaml
 
 from .constants import DEFAULT_LLM_BASE_URL, resolve_llm_base_url
-from .graph_rxn_mapper.subtractive_reaction_mapper_v3 import ReactionAtomMapperConfig
 
 ReasoningEffort = Literal["low", "medium", "high"]
 
@@ -321,9 +320,6 @@ class LLMAtomMappingConfig:
 @dataclass
 class ToolsConfig:
     reaction_energy: ReactionEnergyConfig = field(default_factory=ReactionEnergyConfig)
-    reaction_mapper: ReactionAtomMapperConfig = field(
-        default_factory=ReactionAtomMapperConfig
-    )
     llm_atom_mapping: LLMAtomMappingConfig = field(default_factory=LLMAtomMappingConfig)
 
     @classmethod
@@ -334,6 +330,7 @@ class ToolsConfig:
         base_dir: Path,
     ) -> ToolsConfig:
         mapping = _validate_mapping_format(data, name="tools_settings")
+
         return cls(
             reaction_energy=ReactionEnergyConfig.from_mapping(
                 mapping.get("reaction_energy"),

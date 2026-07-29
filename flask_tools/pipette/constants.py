@@ -88,7 +88,7 @@ class ToolResult(BaseModel):
     status: ToolStatus
     data: (
         SerializeAsAny[ToolResultDetails] | None
-    )  # None if tool had an error or wasn't run. SerializeAsAny or else model_dump only outputs the parent class ToolResultDetails' fields which are nothing.
+    )  # None if tool had an error or wasn't run. Must use SerializeAsAny or else model_dump only outputs the parent class ToolResultDetails' fields which are no fields.
     comment: str = ""
     skipped_reason: str | None = (
         None  # If a priority checker skipped this tool, like in an exact rule pipeline, or a traceback if there was an error

@@ -14,6 +14,7 @@ from .config import PipetteConfig
 from .graph_rxn_mapper.subtractive_reaction_mapper_pipette_tool import (
     GraphBasedBalancer,
     GraphBasedBalancerResultDetails,
+    RDTAtomMapper,
 )
 from .verifiers import (
     BasicSmilesValidationChecker,
@@ -346,7 +347,8 @@ def build_default_pipeline(
         "basic_smiles_validation": lambda _: BasicSmilesValidationChecker(),
         "exact_match": lambda _: ExactMatchChecker(),
         "graph_based_balancing": lambda config: GraphBasedBalancer(config),
-        "llm_atom_mapping": lambda config: LLMAtomMapper.from_config(config),
+        # "llm_atom_mapping": lambda config: LLMAtomMapper.from_config(config),
+        "rdt_atom_mapping": lambda _: RDTAtomMapper(),
         "charge_conservation": lambda _: ChargeConservationChecker(),
         "mass_conservation": lambda config: MassConservationChecker(config),
         "reaction_energy": lambda config: ReactionEnergyChecker(

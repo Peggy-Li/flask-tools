@@ -37,11 +37,7 @@ public final class PipetteAtomMapperCli {
             }
 
             try {
-                ReactionResult result = RDT.map(
-                        reaction,
-                        options.generate2D,
-                        options.complexMapping
-                );
+                ReactionResult result = RDT.map(reaction);
                 String mappedSmiles = result.getMappedSmiles();
                 if (mappedSmiles == null || mappedSmiles.isBlank()) {
                     throw new IllegalStateException("RDT returned no mapped SMILES");
@@ -180,7 +176,7 @@ public final class PipetteAtomMapperCli {
     private static void printUsage() {
         System.err.println("Usage: java -cp <helper-classes>:<rdt-jar> "
                 + "flask_tools.pipette.java.PipetteAtomMapperCli "
-                + "[--input reactions.txt] [--no-2d] [--simple-mapping] [reaction ...]");
+                + "[--input reactions.txt] [reaction ...]");
         System.err.println(
                 "Reads one reaction SMILES per line from stdin when no file or positional reactions are provided."
         );
@@ -188,29 +184,21 @@ public final class PipetteAtomMapperCli {
 
     private static final class Options {
         private final Path inputPath;
-        private final boolean generate2D;
-        private final boolean complexMapping;
         private final boolean showHelp;
         private final List<String> positionalReactions;
 
         private Options(
                 Path inputPath,
-                boolean generate2D,
-                boolean complexMapping,
                 boolean showHelp,
                 List<String> positionalReactions
         ) {
             this.inputPath = inputPath;
-            this.generate2D = generate2D;
-            this.complexMapping = complexMapping;
             this.showHelp = showHelp;
             this.positionalReactions = positionalReactions;
         }
 
         private static Options parse(String[] args) {
             Path inputPath = null;
-            boolean generate2D = true;
-            boolean complexMapping = true;
             boolean showHelp = false;
             List<String> positional = new ArrayList<>();
 
@@ -228,19 +216,13 @@ public final class PipetteAtomMapperCli {
                         }
                         inputPath = Path.of(args[++i]);
                         break;
-                    case "--no-2d":
-                        generate2D = false;
-                        break;
-                    case "--simple-mapping":
-                        complexMapping = false;
-                        break;
                     default:
                         positional.add(arg);
                         break;
                 }
             }
 
-            return new Options(inputPath, generate2D, complexMapping, showHelp, positional);
+            return new Options(inputPath, showHelp, positional);
         }
     }
 }
