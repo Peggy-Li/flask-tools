@@ -34,7 +34,7 @@ include = ["flask_tools*"]
 [project.scripts]
 flask-tools-install = "flask_tools.install:main"
 pipette = "flask_tools.pipette.grade_rxn:main"
-pipette-rdt = "flask_tools.pipette.rdt.verifiers:main"
+pipette-rdt = "flask_tools.pipette.verifiers.rdt:main"
 
 [project.optional-dependencies]
 rdkit = ["rdkit>=2025.3.6"]
