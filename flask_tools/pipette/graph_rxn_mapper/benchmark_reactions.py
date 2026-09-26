@@ -19,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
-from rdfreader import RDFParser
+#from rdfreader import RDFParser   # quick and dirty. todo: remove this import and functions using it that are not needed in pipette
 from rdkit import Chem, RDLogger
 from tqdm import tqdm
 
