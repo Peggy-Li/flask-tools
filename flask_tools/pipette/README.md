@@ -127,9 +127,9 @@ The tools can also be disabled by setting `tool_list: null` in the the config.
 ## Custom reaction-fixer positions
 
 By default, the LLM reaction fixer is called at fixed points in the pipeline (after
-`exact_match`/`graph_based_balancing`, whichever applies). You can additionally trigger the
-fixer immediately before and/or after any tool by setting `custom_fixer_position` in the config,
-a list of `[tool_name, position]` pairs where `position` is `"before"`, `"after"`, or `"both"`:
+`exact_match`/`graph_based_balancing`, whichever applies). You can override this with the config value `custom_fixer_position`. If specified,
+the fixer will not be called at the default places, only what you specify.
+`custom_fixer_position` is a list of `[tool_name, position]` pairs where `position` is `"before"`, `"after"`, or `"both"`:
 
 ```yaml
 custom_fixer_position:

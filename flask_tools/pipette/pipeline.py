@@ -225,7 +225,8 @@ class GradingPipeline:
             return is_custom_fixer_position(checker_name, "before")
 
         def is_tool_to_call_fixer_after(checker_name: str) -> bool:
-            if checker_name in (ExactMatchChecker.name, GraphBasedBalancer.name):
+            # if custom_fixer_position is set, it completely dictates when fixer is called, overriding the default behavior
+            if not self.config.custom_fixer_position and checker_name in (ExactMatchChecker.name, GraphBasedBalancer.name):
                 if (
                     GraphBasedBalancer.name in checker_names
                     and checker_name == ExactMatchChecker.name
