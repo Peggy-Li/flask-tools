@@ -215,6 +215,15 @@ class GradingPipeline:
                     )
             return None
 
+        def is_custom_fixer_position(checker_name: str, position: str) -> bool:
+            return any(
+                name == checker_name and pos in (position, "both")
+                for name, pos in self.config.custom_fixer_position
+            )
+
+        def is_tool_to_call_fixer_before(checker_name: str) -> bool:
+            return is_custom_fixer_position(checker_name, "before")
+
         def is_tool_to_call_fixer_after(checker_name: str) -> bool:
             if checker_name in (ExactMatchChecker.name, GraphBasedBalancer.name):
                 if (
@@ -224,7 +233,7 @@ class GradingPipeline:
                     # Two natural points to call the LLM balancer at. Only call one.
                     return False
                 return True
-            return False
+            return is_custom_fixer_position(checker_name, "after")
 
         previous_tool_results = previous_tool_results or {}
         previous_tool_names = [
@@ -246,6 +255,12 @@ class GradingPipeline:
                     if none_or_fixed_and_graded is not None:
                         return none_or_fixed_and_graded
                 continue
+            if not should_skip_remaining and is_tool_to_call_fixer_before(
+                checker.name
+            ):
+                none_or_fixed_and_graded = await maybe_call_fixer()
+                if none_or_fixed_and_graded is not None:
+                    return none_or_fixed_and_graded
             if should_skip_remaining:
                 result = checker.skipped(skip_reason)
             else:

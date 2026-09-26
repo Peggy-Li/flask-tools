@@ -124,6 +124,25 @@ The llm reaction fixer can be disabled with `python grade_rxn.py --no-fix ...` o
 
 The tools can also be disabled by setting `tool_list: null` in the the config.
 
+## Custom reaction-fixer positions
+
+By default, the LLM reaction fixer is called at fixed points in the pipeline (after
+`exact_match`/`graph_based_balancing`, whichever applies). You can additionally trigger the
+fixer immediately before and/or after any tool by setting `custom_fixer_position` in the config,
+a list of `[tool_name, position]` pairs where `position` is `"before"`, `"after"`, or `"both"`:
+
+```yaml
+custom_fixer_position:
+  - [reaction_energy, before]
+  - [charge_conservation, after]
+```
+
+This means the LLM fixer is called immediately before `reaction_energy` runs, and again
+immediately after `charge_conservation` runs. If the fixer changes the reaction SMILES, grading
+restarts from the top with the fixed reaction. `tool_name` should match one of the tool names in
+`tool_list` (e.g. `basic_smiles_validation`, `exact_match`, `graph_based_balancing`,
+`rdt_atom_mapping`, `charge_conservation`, `mass_conservation`, `reaction_energy`).
+
 ## Full JSON Output
 `results` from `grade_reactions()` is a list of `ReactionGrade` objects, which is a series of `ToolResults` and a final grade:
 ```

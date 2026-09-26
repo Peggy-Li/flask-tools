@@ -17,6 +17,8 @@ import yaml
 from .constants import DEFAULT_LLM_BASE_URL, resolve_llm_base_url
 
 ReasoningEffort = Literal["low", "medium", "high"]
+FixerPosition = Literal["before", "after", "both"]
+_FIXER_POSITIONS = {"before", "after", "both"}
 
 
 def package_data_path(filename: str) -> Path:
@@ -50,6 +52,35 @@ def _resolve_optional_path(path_value: object, *, base_dir: Path) -> Path | None
     if not candidate.is_absolute():
         candidate = (base_dir / candidate).resolve()
     return candidate
+
+
+def _parse_custom_fixer_position(data: object) -> list[tuple[str, FixerPosition]]:
+    if data is None:
+        return []
+    if not isinstance(data, list):
+        raise ValueError(
+            "custom_fixer_position must be a list of (tool_name, position) pairs."
+        )
+    parsed: list[tuple[str, FixerPosition]] = []
+    for entry in data:
+        if (
+            not isinstance(entry, (list, tuple))
+            or len(entry) != 2
+            or not isinstance(entry[0], str)
+            or not isinstance(entry[1], str)
+        ):
+            raise ValueError(
+                "Each entry in custom_fixer_position must be a [tool_name, position] "
+                "pair of strings."
+            )
+        tool_name, position = entry
+        if position not in _FIXER_POSITIONS:
+            raise ValueError(
+                "custom_fixer_position position must be one of "
+                f"{sorted(_FIXER_POSITIONS)}, got {position!r}."
+            )
+        parsed.append((tool_name, position))
+    return parsed
 
 
 def _resolve_defaultable_cwd_path(
@@ -356,6 +387,9 @@ class PipetteConfig:
     solvent_catalog_path: Path = field(
         default_factory=lambda: package_data_path("solvents.tsv")
     )
+    custom_fixer_position: list[tuple[str, FixerPosition]] = field(
+        default_factory=list
+    )
 
     @classmethod
     def from_mapping(
@@ -403,6 +437,9 @@ class PipetteConfig:
             ),
             solvent_catalog_path=solvent_catalog_path
             or package_data_path("solvents.tsv"),
+            custom_fixer_position=_parse_custom_fixer_position(
+                mapping.get("custom_fixer_position")
+            ),
         )
 
     @classmethod
