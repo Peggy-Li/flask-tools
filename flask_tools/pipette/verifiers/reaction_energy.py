@@ -11,7 +11,8 @@ import csv
 from dataclasses import dataclass
 from pathlib import Path
 import time
-from typing import Protocol, Iterable, TypedDict
+from typing import Protocol, Iterable
+from typing_extensions import TypedDict
 
 from .base import CacheableReactionChecker
 from ..config import PipetteConfig
