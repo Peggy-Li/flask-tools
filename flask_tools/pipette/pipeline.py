@@ -183,13 +183,13 @@ class GradingPipeline:
         assert isinstance(res, ReactionGrade)
         return res
 
-    async def grade_one_async(
+    async def run_tools_async(
         self,
         rxn_smiles: str,
         *,
         fix_attempted: bool = False,
         previous_tool_results: ToolResultsDict | None = None,
-    ) -> ReactionGrade:
+    ):
         run_at_most_once = [GraphBasedBalancer.name]
 
         async def maybe_call_fixer() -> ReactionGrade | None:
@@ -314,6 +314,35 @@ class GradingPipeline:
             if none_or_fixed_and_graded is not None:
                 return none_or_fixed_and_graded
 
+        return rxn_smiles, all_tool_results, previous_tool_results
+
+    def run_tools(
+        self,
+        rxn_smiles: str,
+        *,
+        fix_attempted: bool = False,
+        prefix_results: list[tuple[str, str, ToolResult]] | None = None,
+    ) -> ReactionGrade:
+        return _run_coroutine_sync(
+            self.run_tools_async(
+                rxn_smiles,
+                fix_attempted=fix_attempted,
+                previous_tool_results=prefix_results,
+            )
+        )
+
+    async def grade_one_async(
+        self,
+        rxn_smiles: str,
+        *,
+        fix_attempted: bool = False,
+        previous_tool_results: ToolResultsDict | None = None,
+    ) -> ReactionGrade:
+        rxn_smiles, all_tool_results, previous_tool_results = await self.run_tools_async(
+            rxn_smiles,
+            fix_attempted=fix_attempted,
+            previous_tool_results=previous_tool_results,
+        )
         return await self._finalize_grade_async(
             rxn_smiles, all_tool_results, previous_tool_results
         )
