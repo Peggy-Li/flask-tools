@@ -46,7 +46,7 @@ from flask_tools.retrosynthesis.flaskv2_reactions import (
 
 import logging
 
-from lc_conductor.tool_registration import register_tool_server
+#from lc_conductor.tool_registration import register_tool_server
 from flask_tools.utils.server_utils import update_mcp_network, get_hostname
 
 logger = logging.getLogger(__name__)
@@ -313,6 +313,16 @@ def get_related_reaction_info(data: dict, forward=True, k_r: int = 3) -> dict:
             "expert_prediction" (str): Expert prediction for the reaction.
             "similar" (list[dict]): List populated with retrieved similar reactions, and their expert predictions
     """
+    if forward_expert_model is None and retro_expert_model is None:
+        raise RuntimeError(
+            "Expert models are not configured for this server. Start the server with "
+            "`--forward-expert-model-path` and/or `--retro-expert-model-path` to enable this tool."
+        )
+    if tokenizer is None:
+        raise RuntimeError(
+            "Tokenizer is not configured for this server. Start the server with "
+            "`--forward-expert-model-path` and/or `--retro-expert-model-path` to enable expert tools."
+        )
     logger.debug(f"data is {data}, forward is {forward}")
 
     # Just in case: Remove extra fields to doubly make sure there's no data leakage
@@ -464,23 +474,28 @@ def main(
     )
     # retriever = forward_retriever if forward else retro_retriever
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        forward_expert_model_path or retro_expert_model_path,
-        padding_side="left",
-    )
-    tokenizer.add_special_tokens({"pad_token": "<|finetune_right_pad_id|>"})
-    if forward_expert_model_path is not None:
-        forward_expert_model = AutoModelForCausalLM.from_pretrained(
-            forward_expert_model_path,
-            device_map="cuda",
-            torch_dtype=torch.bfloat16,
+    if forward_expert_model_path is not None or retro_expert_model_path is not None:
+        if not HAS_FLASKV2:
+            raise ImportError(
+                "Please install the [flask] optional packages to use expert models."
+            )
+        tokenizer = AutoTokenizer.from_pretrained(
+            forward_expert_model_path or retro_expert_model_path,
+            padding_side="left",
         )
-    if retro_expert_model_path is not None:
-        retro_expert_model = AutoModelForCausalLM.from_pretrained(
-            retro_expert_model_path,
-            device_map="cuda",
-            torch_dtype=torch.bfloat16,
-        )
+        tokenizer.add_special_tokens({"pad_token": "<|finetune_right_pad_id|>"})
+        if forward_expert_model_path is not None:
+            forward_expert_model = AutoModelForCausalLM.from_pretrained(
+                forward_expert_model_path,
+                device_map="cuda",
+                torch_dtype=torch.bfloat16,
+            )
+        if retro_expert_model_path is not None:
+            retro_expert_model = AutoModelForCausalLM.from_pretrained(
+                retro_expert_model_path,
+                device_map="cuda",
+                torch_dtype=torch.bfloat16,
+            )
 
     if forward_expert_model is not None:
 
