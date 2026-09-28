@@ -28,6 +28,14 @@ RDT_HELPER_BUILD_ENV_VAR = "PIPETTE_RDT_HELPER_BUILD_DIR"
 RDT_JAVA_BIN_ENV_VAR = "PIPETTE_RDT_JAVA_BIN"
 RDT_JAVAC_BIN_ENV_VAR = "PIPETTE_RDT_JAVAC_BIN"
 RDT_MAIN_CLASS = "flask_tools.pipette.java.PipetteAtomMapperCli"
+RDT_TIMEOUT_ENV_VAR = "PIPETTE_RDT_TIMEOUT_SECONDS"
+DEFAULT_RDT_TIMEOUT_SECONDS = 120.0
+RDT_TIMEOUT_RETRIES = 3  # total attempts, including the first
+
+
+def _default_rdt_timeout() -> float:
+    """Return the configured per-batch RDT subprocess timeout, in seconds."""
+    return float(os.environ.get(RDT_TIMEOUT_ENV_VAR, DEFAULT_RDT_TIMEOUT_SECONDS))
 
 
 @dataclass(frozen=True)
@@ -182,8 +190,16 @@ def map_reaction_smiles_list_with_rdt(
     repo_path: str | Path | None = None,
     java_bin: str | None = None,
     javac_bin: str | None = None,
+    timeout: float | None = None,
 ) -> list[str]:
-    """Map a batch of reaction SMILES strings with the RDT helper CLI."""
+    """Map a batch of reaction SMILES strings with the RDT helper CLI.
+
+    RDT can way too long (2s vs 4min) non-deterministically
+    (`C=CC(O)C(C)N.C=CCSCC(C)=O>>C=C.CC(=O)CSC/C=C/C(O)C(C)N`), so the
+    subprocess call is bounded by `timeout` seconds (default from
+    PIPETTE_RDT_TIMEOUT_SECONDS, else 120s), killing and retrying the child
+    process up to RDT_TIMEOUT_RETRIES times total before giving up.
+    """
     if not reaction_smiles_list:
         return []
 
@@ -200,13 +216,27 @@ def map_reaction_smiles_list_with_rdt(
         os.pathsep.join([str(helper_build_dir), str(resolved_jar)]),
         RDT_MAIN_CLASS,
     ]
-    proc = subprocess.run(
-        command,
-        input="\n".join(item.stripped_smiles for item in prepared) + "\n",
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    timeout = _default_rdt_timeout() if timeout is None else timeout
+    subprocess_timeout = timeout if timeout > 0 else None
+    proc = None
+    for attempt in range(1, RDT_TIMEOUT_RETRIES + 1):
+        try:
+            proc = subprocess.run(
+                command,
+                input="\n".join(item.stripped_smiles for item in prepared) + "\n",
+                text=True,
+                capture_output=True,
+                check=False,
+                timeout=subprocess_timeout,
+            )
+            break
+        except subprocess.TimeoutExpired as exc:
+            if attempt == RDT_TIMEOUT_RETRIES:
+                raise RuntimeError(
+                    f"RDT batch process timed out after {timeout}s on all {RDT_TIMEOUT_RETRIES} "
+                    f"attempts for {len(prepared)} reaction(s), starting with "
+                    f"{prepared[0].original_smiles!r}"
+                ) from exc
 
     stderr = proc.stderr.strip()
     stdout_lines = [line for line in proc.stdout.splitlines() if line.strip()]
@@ -272,6 +302,7 @@ def map_reaction_smiles_with_rdt(
     repo_path: str | Path | None = None,
     java_bin: str | None = None,
     javac_bin: str | None = None,
+    timeout: float | None = None,
 ) -> str:
     """Map one reaction SMILES string with the RDT helper CLI."""
     return map_reaction_smiles_list_with_rdt(
@@ -280,6 +311,7 @@ def map_reaction_smiles_with_rdt(
         repo_path=repo_path,
         java_bin=java_bin,
         javac_bin=javac_bin,
+        timeout=timeout,
     )[0]
 
 
@@ -332,6 +364,16 @@ def main() -> int:
         action="store_true",
         help="Print JSON output records instead of plain mapped SMILES lines.",
     )
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=_default_rdt_timeout(),
+        help=(
+            "Seconds to wait for RDT before killing it and raising an error. "
+            f"0 disables the timeout. Defaults to {RDT_TIMEOUT_ENV_VAR} or "
+            f"{DEFAULT_RDT_TIMEOUT_SECONDS}."
+        ),
+    )
     args = parser.parse_args()
 
     reaction_smiles_list = args.rxn_smi or _load_reaction_smiles_file(args.file)
@@ -341,6 +383,7 @@ def main() -> int:
         repo_path=args.repo_path,
         java_bin=args.java_bin,
         javac_bin=args.javac_bin,
+        timeout=args.timeout,
     )
 
     if args.json:
