@@ -55,6 +55,10 @@ _FixerT = TypeVar("_FixerT", bound="BaseLLMReactionFixer")
 
 class BaseLLMReactionFixer:
     name = "llm_reaction_fix"
+    # Up to 2 retries (3 attempts total) since the LLM occasionally returns a
+    # fixed_reaction_smiles containing invalid SMILES (e.g. malformed valence),
+    # which is transient and often succeeds on a re-query.
+    max_retries = 2
 
     def __init__(
         self,
@@ -234,22 +238,26 @@ class LLMReactionFixer(BaseLLMReactionFixer):
             indent=2,
             sort_keys=True,
         )
-        response_text = query_task(
-            system_prompt=self.system_prompt,
-            user_prompt=user_prompt,
-            model=self.model,
-            api_key=self.api_key,
-            url=self.url,
-            reasoning_effort=self.reasoning_effort,
-            structured_output_schema=ReactionFixResponse,
-            agent_name="PipetteFixer",
-        )
-        try:
-            return self._parse_reaction_fix(rxn_smiles, response_text)
-        except Exception as exc:
-            raise ValueError(
-                f"Reaction fixer failed to parse response: {exc} for {rxn_smiles} with response {response_text}"
-            ) from exc
+        last_exc: Exception | None = None
+        for attempt in range(self.max_retries + 1):
+            response_text = query_task(
+                system_prompt=self.system_prompt,
+                user_prompt=user_prompt,
+                model=self.model,
+                api_key=self.api_key,
+                url=self.url,
+                reasoning_effort=self.reasoning_effort,
+                structured_output_schema=ReactionFixResponse,
+                agent_name="PipetteFixer",
+            )
+            try:
+                return self._parse_reaction_fix(rxn_smiles, response_text)
+            except Exception as exc:
+                last_exc = ValueError(
+                    f"Reaction fixer failed to parse response: {exc} for {rxn_smiles} with response {response_text}"
+                )
+                last_exc.__cause__ = exc
+        raise last_exc
 
 
 class AsyncLLMReactionFixer(BaseLLMReactionFixer):
@@ -263,19 +271,23 @@ class AsyncLLMReactionFixer(BaseLLMReactionFixer):
             indent=2,
             sort_keys=True,
         )
-        response_text = await query_task_async(
-            system_prompt=self.system_prompt,
-            user_prompt=user_prompt,
-            model=self.model,
-            api_key=self.api_key,
-            url=self.url,
-            reasoning_effort=self.reasoning_effort,
-            structured_output_schema=ReactionFixResponse,
-            agent_name="PipetteFixer",
-        )
-        try:
-            return self._parse_reaction_fix(rxn_smiles, response_text)
-        except Exception as exc:
-            raise ValueError(
-                f"Reaction fixer failed to parse response: {exc} for {rxn_smiles} with response {response_text}"
-            ) from exc
+        last_exc: Exception | None = None
+        for attempt in range(self.max_retries + 1):
+            response_text = await query_task_async(
+                system_prompt=self.system_prompt,
+                user_prompt=user_prompt,
+                model=self.model,
+                api_key=self.api_key,
+                url=self.url,
+                reasoning_effort=self.reasoning_effort,
+                structured_output_schema=ReactionFixResponse,
+                agent_name="PipetteFixer",
+            )
+            try:
+                return self._parse_reaction_fix(rxn_smiles, response_text)
+            except Exception as exc:
+                last_exc = ValueError(
+                    f"Reaction fixer failed to parse response: {exc} for {rxn_smiles} with response {response_text}"
+                )
+                last_exc.__cause__ = exc
+        raise last_exc

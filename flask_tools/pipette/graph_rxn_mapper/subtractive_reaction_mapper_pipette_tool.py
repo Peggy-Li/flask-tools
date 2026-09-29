@@ -333,7 +333,7 @@ class LLMAtomMapper(ReactionChecker):
 
 
 class RDTAtomMapper(ReactionChecker):
-    name = "rdt_atom_mapper"
+    name = "rdt_atom_mapping"
 
     def run(
         self, rxn_smiles: str | SmilesContainer, context: ToolResultsDict | None = None

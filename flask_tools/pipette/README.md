@@ -23,7 +23,7 @@ The current pipeline includes:
     to an external LLM judge
 
 You must have an api key set with an environment variable, either `FLASK_ORCHESTRATOR_API_KEY, OPENAI_API_KEY, or PIPETTE_API_KEY`.
-Optional: Setting the LLM model with `FLASK_ORCHESTRATOR_MODEL`, and setting the LLM url with `FLASK_ORCHESTRATOR_URL or PIPETTE_LLM_BASE_URL`
+Optional: Setting the LLM model with `FLASK_ORCHESTRATOR_MODEL`, setting the LLM url with `FLASK_ORCHESTRATOR_URL or PIPETTE_LLM_BASE_URL`, and effort level with `FLASK_ORCHESTRATOR_EFFORT`.
 
 
 ## Install
