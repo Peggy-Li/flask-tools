@@ -54,9 +54,9 @@ def _resolve_optional_path(path_value: object, *, base_dir: Path) -> Path | None
     return candidate
 
 
-def _parse_custom_fixer_position(data: object) -> list[tuple[str, FixerPosition]]:
+def _parse_custom_fixer_position(data: object) -> list[tuple[str, FixerPosition]] | None:
     if data is None:
-        return []
+        return None
     if not isinstance(data, list):
         raise ValueError(
             "custom_fixer_position must be a list of (tool_name, position) pairs."
@@ -387,9 +387,7 @@ class PipetteConfig:
     solvent_catalog_path: Path = field(
         default_factory=lambda: package_data_path("solvents.tsv")
     )
-    custom_fixer_position: list[tuple[str, FixerPosition]] = field(
-        default_factory=list
-    )
+    custom_fixer_position: list[tuple[str, FixerPosition]] | None = None
 
     @classmethod
     def from_mapping(

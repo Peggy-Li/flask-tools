@@ -189,10 +189,10 @@ class GradingPipeline:
         *,
         fix_attempted: bool = False,
         previous_tool_results: ToolResultsDict | None = None,
-    ):
+    ) -> tuple[str, ToolResultsDict, ToolResultsDict]:
         run_at_most_once = [GraphBasedBalancer.name]
 
-        async def maybe_call_fixer() -> ReactionGrade | None:
+        async def maybe_call_fixer() -> tuple[str, ToolResultsDict, ToolResultsDict] | None:
             if not (self.config.settings.use_fixing and not fix_attempted):
                 # and self._should_try_llm_fix(context)
                 return None
@@ -208,7 +208,7 @@ class GradingPipeline:
                 fix_result, fixed_rxn_smiles = fix_attempt
                 all_tool_results[(rxn_smiles, fix_result.name)] = fix_result
                 if fixed_rxn_smiles is not None:
-                    return await self.grade_one_async(
+                    return await self.run_tools_async(
                         fixed_rxn_smiles,
                         fix_attempted=True,
                         previous_tool_results=all_tool_results,
@@ -216,6 +216,8 @@ class GradingPipeline:
             return None
 
         def is_custom_fixer_position(checker_name: str, position: str) -> bool:
+            if not self.config.custom_fixer_position:
+                return False
             return any(
                 name == checker_name and pos in (position, "both")
                 for name, pos in self.config.custom_fixer_position
@@ -225,8 +227,10 @@ class GradingPipeline:
             return is_custom_fixer_position(checker_name, "before")
 
         def is_tool_to_call_fixer_after(checker_name: str) -> bool:
-            # if custom_fixer_position is set, it completely dictates when fixer is called, overriding the default behavior
-            if not self.config.custom_fixer_position and checker_name in (ExactMatchChecker.name, GraphBasedBalancer.name):
+            # custom_fixer_position=None means unconfigured (use legacy default behavior below).
+            # custom_fixer_position=[] means explicitly configured to have no fixer positions,
+            # which overrides the default behavior entirely.
+            if self.config.custom_fixer_position is None and checker_name in (ExactMatchChecker.name, GraphBasedBalancer.name):
                 if (
                     GraphBasedBalancer.name in checker_names
                     and checker_name == ExactMatchChecker.name
@@ -285,9 +289,9 @@ class GradingPipeline:
             # prefix.append((rxn_smiles, checker.name, result))
             all_tool_results[(rxn_smiles, checker.name)] = result
 
-            # Actions that change the smiles, calling grade_one_async again.
+            # Actions that change the smiles, calling run_tools_async again.
             # IE, balancing / fixing.
-            # If fixing/balancing returned a value, call new grade_one with new rxn and
+            # If fixing/balancing returned a value, call new run_tools_async with new rxn and
             # it's main tool result list will start from the new rxn
 
             # Graph based balancer
@@ -298,7 +302,7 @@ class GradingPipeline:
                     if (
                         d.original_reaction_smiles != d.graph_balanced_reaction_smiles
                     ):  # Does this need canonicalization?
-                        return await self.grade_one_async(
+                        return await self.run_tools_async(
                             d.graph_balanced_reaction_smiles,
                             fix_attempted=False,
                             previous_tool_results=all_tool_results,
@@ -309,7 +313,7 @@ class GradingPipeline:
                 if none_or_fixed_and_graded is not None:
                     return none_or_fixed_and_graded
         if (
-            not self.checkers
+            not self.checkers and not self.config.custom_fixer_position
         ):  # We allow using no tools while still attempting to fix the equation
             none_or_fixed_and_graded = await maybe_call_fixer()
             if none_or_fixed_and_graded is not None:
@@ -323,7 +327,7 @@ class GradingPipeline:
         *,
         fix_attempted: bool = False,
         prefix_results: list[tuple[str, str, ToolResult]] | None = None,
-    ) -> ReactionGrade:
+    ) -> tuple[str, ToolResultsDict, ToolResultsDict]:
         return _run_coroutine_sync(
             self.run_tools_async(
                 rxn_smiles,

@@ -78,6 +78,7 @@ def set_agent_backend(
     resolved_model = os.getenv("FLASK_ORCHESTRATOR_MODEL", model)
     resolved_backend = os.getenv("FLASK_ORCHESTRATOR_BACKEND", backend)
     resolved_url = _normalize_base_url(os.getenv("FLASK_ORCHESTRATOR_URL", url))
+    resolved_effort = os.getenv("FLASK_ORCHESTRATOR_EFFORT", reasoning_effort)  # Not part of existing FLASK env vars. Should this be called PIPETTE_EFFORT?
 
     BACKEND = AgentFrameworkBackend(
         model=resolved_model,
@@ -85,7 +86,7 @@ def set_agent_backend(
         api_key=resolved_api_key,
         base_url=resolved_url,
         use_responses_api=True,
-        reasoning_effort=reasoning_effort,
+        reasoning_effort=resolved_effort,
     )
 
 
@@ -127,7 +128,7 @@ async def query_task_async(
     reasoning_effort: Literal["low", "medium", "high"] = "medium",
     structured_output_schema: type[BaseModel] | None = None,
     agent_name: str = "Pipette",
-    max_retries: int = 1,
+    max_retries: int = 3,
     max_tool_calls: int = 1,
 ) -> str:
     task = Task(
@@ -186,7 +187,7 @@ def query_task(
     reasoning_effort: Literal["low", "medium", "high"] = "medium",
     structured_output_schema: type[BaseModel] | None = None,
     agent_name: str = "Pipette",
-    max_retries: int = 1,
+    max_retries: int = 3,
     max_tool_calls: int = 1,
 ) -> str:
     return _run_coroutine_sync(
