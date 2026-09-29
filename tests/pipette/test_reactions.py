@@ -226,9 +226,9 @@ def test_pipeline_fixed_reaction(
     )
 
     llm_atom_mapper = SpyChecker(
-        "llm_atom_mapping",
+        "rdt_atom_mapping",
         lambda rxn_smiles, _: ToolResult(
-            name="llm_atom_mapping",
+            name="rdt_atom_mapping",
             status=ToolStatus.PASS,
             comment="Passed",
             data=AtomMappingResultDetails(
